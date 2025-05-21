@@ -4,14 +4,10 @@ import {
   MenuButton,
   MenuItem,
   MenuItems,
-  Switch,
 } from "@headlessui/react";
 import Image from "next/image";
-import Link from "next/link";
-import { BsStars } from "react-icons/bs";
 import { FiChevronDown, FiUserPlus } from "react-icons/fi";
-import { IoCheckmarkCircleSharp } from "react-icons/io5";
-import { PiAtom, PiGearSix, PiSelectionBackgroundLight } from "react-icons/pi";
+import { PiGearSix } from "react-icons/pi";
 import SignOut from "./SignOut";
 import { useState, useEffect } from "react";
 import SignInModal from "./SignInModal";
@@ -23,9 +19,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
-  CommandEmpty,
   CommandGroup,
-  CommandInput,
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
@@ -62,7 +56,7 @@ const HeaderClient = () => {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState<boolean>(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] =
     useState<boolean>(false);
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const [imageSrc, setImageSrc] = useState<string>(
     session?.user?.image || "/logoLight.png"
   );

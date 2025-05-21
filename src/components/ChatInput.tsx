@@ -2,13 +2,11 @@
 import { db } from "@/firebase";
 import { Message } from "@/type";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import admin from "firebase-admin";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import { ImArrowUpRight2 } from "react-icons/im";
-import { TbPaperclip } from "react-icons/tb";
 import { IoChatboxEllipses } from "react-icons/io5";
 import useSWR from "swr";
 
