@@ -7,7 +7,7 @@ import SignOut from "./SignOut";
 import { useState, useEffect } from "react";
 import SignInModal from "./SignInModal";
 import RegisterModal from "./RegisterModal";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,11 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CommandSeparator } from "cmdk";
+import { Session } from "next-auth";
+
+interface HeaderClientProps {
+  session: Session | null; // 👈 Tambahkan ini
+}
 
 const frameworks = [
   {
@@ -43,7 +48,7 @@ const frameworks = [
   },
 ];
 
-const HeaderClient = () => {
+const HeaderClient = ({session}: HeaderClientProps) => {
   // state for combobox
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
@@ -51,7 +56,7 @@ const HeaderClient = () => {
   const [isSignInModalOpen, setIsSignInModalOpen] = useState<boolean>(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] =
     useState<boolean>(false);
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const [imageSrc, setImageSrc] = useState<string>(
     session?.user?.image || "/logoLight.png"
   );
