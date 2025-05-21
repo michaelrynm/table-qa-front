@@ -5,6 +5,7 @@ import ReactMarkdown from "react-markdown";
 
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import { HTMLAttributes } from "react";
 
 interface Props {
   message: DocumentData;
@@ -117,7 +118,12 @@ const Message = ({ message }: Props) => {
                 ),
 
                 // Code block & inline code
-                code({ node, inline, className, children, ...props }: any) {
+                code({
+                  inline,
+                  className,
+                  children,
+                  ...props
+                }: React.HTMLAttributes<HTMLElement> & { inline?: boolean }) {
                   const match = /language-(\w+)/.exec(className || "");
                   if (!inline && match) {
                     return (
@@ -127,7 +133,6 @@ const Message = ({ message }: Props) => {
                       />
                     );
                   } else {
-                    // Inline code
                     return (
                       <code
                         className="bg-[#2f2f2f] px-1 py-0.5 rounded text-sm text-gray-100"

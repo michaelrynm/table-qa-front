@@ -98,7 +98,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         toast.success("Registration successful! Please sign in.");
         resetForm();
         onSwitchToSignIn();
-      } catch (error) {
+      } catch (_error) {
         toast.error("Registration failed. Please try again.");
       }
     }
