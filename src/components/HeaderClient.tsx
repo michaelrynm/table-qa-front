@@ -7,7 +7,7 @@ import SignOut from "./SignOut";
 import { useState, useEffect } from "react";
 import SignInModal from "./SignInModal";
 import RegisterModal from "./RegisterModal";
-// import { useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -48,7 +48,10 @@ const frameworks = [
   },
 ];
 
-const HeaderClient = ({session}: HeaderClientProps) => {
+const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
+  const { data: clientSession } = useSession();
+
+  const session = serverSession || clientSession;
   // state for combobox
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState("");
