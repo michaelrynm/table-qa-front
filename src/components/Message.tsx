@@ -117,7 +117,7 @@ const Message = ({ message }: Props) => {
                 ),
 
                 // Code block & inline code
-                code({ node, inline, className, children, ...props }) {
+                code({ node, inline, className, children, ...props }: any) {
                   const match = /language-(\w+)/.exec(className || "");
                   if (!inline && match) {
                     return (

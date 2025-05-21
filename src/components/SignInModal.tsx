@@ -111,7 +111,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
             </button>
             <div className="text-right">
               <p className="text-sm">
-                Don't have an account?
+                Don&#39;t have an account?
                 <span
                   onClick={onSwitchToRegister}
                   className="font-bold cursor-pointer ml-1 text-white"

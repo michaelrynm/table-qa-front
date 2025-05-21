@@ -1,10 +1,5 @@
 "use client";
-import {
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuItems,
-} from "@headlessui/react";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import Image from "next/image";
 import { FiChevronDown, FiUserPlus } from "react-icons/fi";
 import { PiGearSix } from "react-icons/pi";
@@ -14,7 +9,7 @@ import SignInModal from "./SignInModal";
 import RegisterModal from "./RegisterModal";
 import { useSession } from "next-auth/react";
 
-import { Check, ChevronRight, ChevronsUpDown } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
