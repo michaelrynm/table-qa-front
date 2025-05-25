@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { googleImage } from "../app/assets";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
+import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -18,6 +19,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const modalRef = useRef<HTMLDivElement>(null);
+  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -61,7 +63,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div
         ref={modalRef}
         className="bg-[#2F2F2F] w-96 flex flex-col gap-5 items-center justify-center rounded-lg p-6 shadow-xl"
@@ -70,7 +72,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
           <p className="text-3xl font-bold tracking-wide text-white">
             Welcome back
           </p>
-          <p className="text-sm tracking-wide mt-2 font-medium text-white/70">
+          <p className="mt-2 text-sm font-medium tracking-wide text-white/70">
             Log in or sign up to get smarter responses, upload files and images,
             and more.
           </p>
@@ -79,7 +81,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
         <div className="w-full">
           <form
             onSubmit={handleEmailLogin}
-            className="flex flex-col gap-5 w-full"
+            className="flex flex-col w-full gap-5"
           >
             <div>
               <label htmlFor="email">Email</label>
@@ -94,18 +96,32 @@ const SignInModal: React.FC<SignInModalProps> = ({
 
             <div>
               <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
-                required
-              />
+              <div className="relative">
+                {isPasswordVisible ? (
+                  <FaRegEye
+                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  />
+                ) : (
+                  <FaRegEyeSlash
+                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  />
+                )}
+
+                <input
+                  type={isPasswordVisible ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 pr-10 text-white w-full"
+                  required
+                />
+              </div>
             </div>
 
             <button
               type="submit"
-              className="bg-white text-black py-2 px-6 rounded-md text-base font-semibold hover:bg-white/90 duration-300 ease-in-out"
+              className="px-6 py-2 text-base font-semibold text-black duration-300 ease-in-out bg-white rounded-md hover:bg-white/90"
             >
               Sign In
             </button>
@@ -114,7 +130,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
                 Don&#39;t have an account?
                 <span
                   onClick={onSwitchToRegister}
-                  className="font-bold cursor-pointer ml-1 text-white"
+                  className="ml-1 font-bold text-white cursor-pointer"
                 >
                   Sign Up
                 </span>
@@ -123,15 +139,15 @@ const SignInModal: React.FC<SignInModalProps> = ({
           </form>
         </div>
 
-        <div className="flex items-center gap-2 w-full my-4">
-          <div className="border-t border-white/30 flex-grow" />
-          <span className="text-white text-sm font-medium">or</span>
-          <div className="border-t border-white/30 flex-grow" />
+        <div className="flex items-center w-full gap-2 my-4">
+          <div className="flex-grow border-t border-white/30" />
+          <span className="text-sm font-medium text-white">or</span>
+          <div className="flex-grow border-t border-white/30" />
         </div>
 
         <button
           onClick={() => signIn("google")}
-          className="border border-white/50 py-2 px-6 rounded-md text-base font-semibold flex items-center gap-2 hover:border-white text-white/80 hover:text-white duration-300 ease-in-out w-full justify-center"
+          className="flex items-center justify-center w-full gap-2 px-6 py-2 text-base font-semibold duration-300 ease-in-out border rounded-md border-white/50 hover:border-white text-white/80 hover:text-white"
         >
           <Image src={googleImage} alt="googleImage" className="w-6 h-6" />
           Sign in with Google
