@@ -2,13 +2,12 @@
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { PiSignOut } from "react-icons/pi";
-import { cn } from "../lib/utils";
 import { signOut } from "next-auth/react";
 
 import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useState } from "react";
 
-const SignOut = ({ className }: { className?: string }) => {
+const SignOut = () => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
   const handleSignOut = () => {
