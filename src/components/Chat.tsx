@@ -30,19 +30,31 @@ const Chat = ({ id }: { id: string }) => {
   }, [messages]);
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="max-w-4xl mx-auto mt-3">
       {messages?.empty && (
         <div className="flex flex-col items-center gap-2 py-5">
           <p>Type a prompt in below to get started!</p>
           <BsArrowDownCircle className="text-xl text-green-300 animate-bounce" />
         </div>
       )}
-      {messages?.docs?.map((message, index) => (
-        <div key={message?.id}>
-          <Message message={message?.data()} />
-          {index < messages?.docs?.length - 1 && <div className="" />}
-        </div>
-      ))}
+      {messages?.docs?.map((message) => {
+        const messageData = message?.data();
+        const isChatGPT = messageData?.user?.name === "ChatGPT";
+
+        return (
+          <div
+            key={message?.id}
+            className={`w-full ${
+              isChatGPT ? "flex justify-start" : "flex justify-end"
+            }`}
+          >
+            <div className="w-full max-w-4xl">
+              <Message message={messageData} />
+            </div>
+          </div>
+        );
+      })}
+
       <div ref={bottomRef} />
     </div>
   );

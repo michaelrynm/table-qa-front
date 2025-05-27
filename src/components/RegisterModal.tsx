@@ -3,6 +3,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { googleImage } from "../app/assets";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
+import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
+import { Loader2 } from "lucide-react";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -18,6 +20,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   const [fullName, setFullName] = useState<string>("");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [errors, setErrors] = useState<{
     fullName?: string;
@@ -26,6 +29,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     confirmPassword?: string;
   }>({});
   const modalRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -90,7 +94,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   // Handle registration
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setIsLoading(true);
     if (validateForm()) {
       try {
         // Here you would typically make an API call to register the user
@@ -98,9 +102,11 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         toast.success("Registration successful! Please sign in.");
         resetForm();
         onSwitchToSignIn();
+        setIsLoading(false);
       } catch (error) {
         console.log(error);
         toast.error("Registration failed. Please try again.");
+        setIsLoading(false);
       }
     }
   };
@@ -121,7 +127,8 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         ref={modalRef}
         className="bg-[#2F2F2F] w-96 flex flex-col gap-5 items-center justify-center rounded-lg p-6 shadow-xl"
       >
-        <div className="px-5 text-center">
+        <div className="px-5 text-center place-items-center">
+          <Image src={"/favicon.ico"} width={64} height={64} alt="logo" />
           <p className="text-3xl font-bold tracking-wide text-white">
             Create account
           </p>
@@ -177,13 +184,27 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               >
                 Password
               </label>
-              <input
-                type="password"
-                id="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
-              />
+              <div className="relative">
+                {isPasswordVisible ? (
+                  <FaRegEye
+                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  />
+                ) : (
+                  <FaRegEyeSlash
+                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  />
+                )}
+                <input
+                  type={isPasswordVisible ? "text" : "password"}
+                  id="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
+                />
+              </div>
+
               {errors.password && (
                 <p className="text-red-400 text-xs mt-1">{errors.password}</p>
               )}
@@ -196,13 +217,27 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
               >
                 Confirm Password
               </label>
-              <input
-                type="password"
-                id="confirmPassword"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
-              />
+              <div className="relative">
+                {isPasswordVisible ? (
+                  <FaRegEye
+                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  />
+                ) : (
+                  <FaRegEyeSlash
+                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
+                  />
+                )}
+                <input
+                  type={isPasswordVisible ? "text" : "password"}
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
+                />
+              </div>
+
               {errors.confirmPassword && (
                 <p className="text-red-400 text-xs mt-1">
                   {errors.confirmPassword}
@@ -213,8 +248,15 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
             <button
               type="submit"
               className="bg-white text-black py-2 px-6 rounded-md text-base font-semibold hover:bg-white/90 duration-300 ease-in-out mt-2"
+              disabled={isLoading}
             >
-              Sign Up
+              {isLoading ? (
+                <div className="flex justify-center">
+                  <Loader2 className="animate-spin" />
+                </div>
+              ) : (
+                "Sign Up"
+              )}
             </button>
             <div className="text-right">
               <p className="text-sm text-white">

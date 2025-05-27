@@ -5,10 +5,14 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { useCollection } from "react-firebase-hooks/firestore";
+import { useCollection, useDocument } from "react-firebase-hooks/firestore";
 import { BiSolidTrashAlt } from "react-icons/bi";
 import { IoChatboxOutline } from "react-icons/io5";
 import { motion } from "framer-motion";
+import toast from "react-hot-toast";
+import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
+import { GoKebabHorizontal } from "react-icons/go";
+import { IoPencil } from "react-icons/io5";
 
 interface Props {
   id: string;
@@ -34,19 +38,21 @@ const ChatRow = ({ id }: Props) => {
     )
   );
 
+  // Tambahkan setelah query messages yang sudah ada
+  const [chatDoc] = useDocument(
+    doc(db, "users", session?.user?.email as string, "chats", id)
+  );
+
   useEffect(() => {
     if (!pathname) return;
     setActive(pathname.includes(id));
   }, [pathname, id]);
 
-  const chat =
-    messages?.docs[messages?.docs?.length - 1]?.data().text &&
-    messages?.docs[messages?.docs?.length - 1]?.data();
-
-  const chatText = chat?.text || "New Chat";
+  const chatData = chatDoc?.data();
+  const lastMessage = messages?.docs[messages?.docs?.length - 1]?.data();
+  const chatText = chatData?.title || lastMessage?.text || "New Chat";
   const shouldAnimate = active;
 
-  // Kumpulan Chats yang ada
   const [chatsSnapshot] = useCollection(
     query(
       collection(db, "users", session?.user?.email as string, "chats"),
@@ -55,37 +61,40 @@ const ChatRow = ({ id }: Props) => {
   );
 
   const handleRemoveChat = async () => {
-    await deleteDoc(
-      doc(db, "users", session?.user?.email as string, "chats", id)
-    );
-    // Set default active
-    if (active) {
-      const nextChat = chatsSnapshot?.docs?.find((chat) => chat.id !== id);
-      if (nextChat) {
-        router.push(`/chat/${nextChat.id}`);
-      } else {
-        // No chats available, redirect to the homepage
-        router.push("/");
+    try {
+      await deleteDoc(
+        doc(db, "users", session?.user?.email as string, "chats", id)
+      );
+
+      toast.success("Chat deleted");
+
+      if (active) {
+        const nextChat = chatsSnapshot?.docs?.find((chat) => chat.id !== id);
+        if (nextChat) {
+          router.push(`/chat/${nextChat.id}`);
+        } else {
+          router.push("/");
+        }
       }
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      toast.error("Failed to delete chat, please try again.");
     }
   };
 
   return (
     <Link
       href={`/chat/${id}`}
-      className={`flex gap-2 items-center justify-center px-2 py-1.5 hover:bg-white/10 rounded-md mb-2 duration-300 ease-in ${
+      className={`flex gap-2 items-center justify-center px-2 py-1.5 hover:bg-white/10 rounded-md mb-2 duration-300 ease-in w-full ${
         active ? "bg-white/10" : "bg-transparent"
       }`}
     >
       <IoChatboxOutline />
-      {/* <p className="hidden md:inline-flex truncate flex-1 text-sm font-medium tracking-wide">
-        {messages?.docs[messages?.docs?.length - 1]?.data().text || "New Chat"}
-      </p> */}
       <div className="relative flex-1 select-none overflow-hidden text-ellipsis break-all">
         <span className="whitespace-nowrap">
           {shouldAnimate ? (
-            chat?.text ? (
-              chat.text.split("").map((character: string, index: number) => (
+            chatText !== "New Chat" ? (
+              chatText.split("").map((character: string, index: number) => (
                 <motion.span
                   key={index}
                   variants={{
@@ -124,10 +133,32 @@ const ChatRow = ({ id }: Props) => {
           )}
         </span>
       </div>
-      <BiSolidTrashAlt
-        onClick={handleRemoveChat}
-        className="text-white/50 hover:text-red-700 duration-300 ease-in-out"
-      />
+
+      <Menu>
+        <MenuButton>
+          <GoKebabHorizontal className="text-white/50 hover:text-white duration-300 ease-in-out" />
+        </MenuButton>
+        <MenuItems
+          anchor="bottom start"
+          className={"bg-[#3a3a3a] p-2 rounded-xl min-w-32"}
+        >
+          <MenuItem>
+            <div className="flex gap-1 items-center text-white/80 hover:text-white duration-300 ease-in-out cursor-pointer hover:bg-white/20 p-2 rounded-lg">
+              <IoPencil />
+              <p className=" text-sm">Edit</p>
+            </div>
+          </MenuItem>
+          <MenuItem>
+            <div
+              onClick={handleRemoveChat}
+              className="flex gap-1 items-center text-red-500   cursor-pointer hover:bg-white/20 p-2 rounded-lg font-medium"
+            >
+              <BiSolidTrashAlt />
+              <p className="text-sm ">Delete</p>
+            </div>
+          </MenuItem>
+        </MenuItems>
+      </Menu>
     </Link>
   );
 };

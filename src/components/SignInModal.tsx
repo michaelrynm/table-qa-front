@@ -4,6 +4,7 @@ import { googleImage } from "../app/assets";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
+import { Loader2 } from "lucide-react";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
   onClose,
   onSwitchToRegister,
 }) => {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const modalRef = useRef<HTMLDivElement>(null);
@@ -44,6 +46,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
   // Handle dummy login menggunakan NextAuth
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     const result = await signIn("credentials", {
       email,
       password,
@@ -52,10 +55,14 @@ const SignInModal: React.FC<SignInModalProps> = ({
 
     if (result?.error) {
       alert("Login failed. Try user@example.com / password123");
+      setEmail("");
+      setPassword("");
+      setIsLoading(false);
     } else {
       toast.success("Sign In successfully!");
       setEmail("");
       setPassword("");
+      setIsLoading(false);
       onClose();
     }
   };
@@ -68,7 +75,8 @@ const SignInModal: React.FC<SignInModalProps> = ({
         ref={modalRef}
         className="bg-[#2F2F2F] w-96 flex flex-col gap-5 items-center justify-center rounded-lg p-6 shadow-xl"
       >
-        <div className="px-5 text-center">
+        <div className="px-5 text-center place-items-center">
+          <Image src={"/favicon.ico"} alt="logo" width={64} height={64} />
           <p className="text-3xl font-bold tracking-wide text-white">
             Welcome back
           </p>
@@ -123,7 +131,13 @@ const SignInModal: React.FC<SignInModalProps> = ({
               type="submit"
               className="px-6 py-2 text-base font-semibold text-black duration-300 ease-in-out bg-white rounded-md hover:bg-white/90"
             >
-              Sign In
+              {isLoading ? (
+                <div className="flex justify-center">
+                  <Loader2 className="animate-spin" />
+                </div>
+              ) : (
+                "Sign In"
+              )}
             </button>
             <div className="text-right">
               <p className="text-sm">

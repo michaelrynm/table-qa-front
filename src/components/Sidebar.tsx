@@ -6,10 +6,10 @@ import { db } from "@/firebase";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { IoHome } from "react-icons/io5";
 import Link from "next/link";
 import NewChat from "./NewChat";
 import ChatRow from "./ChatRow";
+import Image from "next/image";
 
 const Sidebar = () => {
   const { data: session } = useSession();
@@ -29,27 +29,23 @@ const Sidebar = () => {
   }, [chats, router]);
 
   return (
-    <div className="hidden md:inline-flex flex-col w-full h-screen p-2.5 relative">
+    <div className="hidden md:inline-flex flex-col w-full h-screen p-2 relative">
       {/* New Chat */}
-      <div className="flex items-center gap-1">
-        <Link
-          href={"/"}
-          className="border border-white/10 text-xs md:text-base p-1.5 md:p-2 rounded-md text-white/50 hover:text-white hover:border-white/50 duration-300 ease-in-out"
-        >
-          <IoHome />
+      <div className="flex items-center justify-center gap-1 border-b border-white/30">
+        <Link href={"/"} className="flex">
+          <Image src={"/favicon.ico"} alt="logo" width={32} height={32} />
+          <p className="font-semibold text-3xl">ChtGPT</p>
         </Link>
+      </div>
+
+      <div className="mt-4">
         <NewChat />
       </div>
 
-      {/* <div className="hidden md:inline mt-4 w-full">
-        <ModelSelection />
-      </div> */}
       {session?.user ? (
         <>
-          <p className="text-white mt-4 px-2 text-sm font-medium">
-            Chat History
-          </p>
-          <div className="mt-4 overflow-y-scroll h-[80%]">
+          <p className="text-white/50 mt-4 px-2 text-sm font-medium">Today</p>
+          <div className="mt-4 overflow-y-scroll h-[80%] w-full">
             {loading ? (
               <div className="flex flex-col flex-1 space-y-2 overflow-auto">
                 {Array.from({ length: 10 }).map((_, i) => (

@@ -1,6 +1,6 @@
 "use client";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
-import Image from "next/image";
+import Image, { StaticImageData } from "next/image";
 import { FiChevronDown, FiUserPlus } from "react-icons/fi";
 import { PiGearSix } from "react-icons/pi";
 import SignOut from "./SignOut";
@@ -8,7 +8,10 @@ import { useState, useEffect } from "react";
 import SignInModal from "./SignInModal";
 import RegisterModal from "./RegisterModal";
 import { useSession } from "next-auth/react";
-
+import Avatar from "@/src/app/assets/images/avatar1.png";
+import { usePathname } from "next/navigation";
+import { db } from "@/firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { Check, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -32,7 +35,7 @@ interface HeaderClientProps {
 
 const frameworks = [
   {
-    value: "GPT-4o",
+    value: "gpt-4o", // huruf kecil
     label: "GPT-4o",
     description: "Great for most tasks",
   },
@@ -54,15 +57,60 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
   const session = serverSession || clientSession;
   // state for combobox
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState("");
 
   const [isSignInModalOpen, setIsSignInModalOpen] = useState<boolean>(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] =
     useState<boolean>(false);
   // const { data: session } = useSession();
-  const [imageSrc, setImageSrc] = useState<string>(
-    session?.user?.image || "/logoLight.png"
+  const [imageSrc, setImageSrc] = useState<string | StaticImageData>(
+    session?.user?.image || Avatar
   );
+
+  const pathname = usePathname();
+
+  const [title, setTitle] = useState<string>("");
+  const [model, setModel] = useState<string>("");
+  const [isInChatRoom, setIsInChatRoom] = useState<boolean>(false);
+
+  const fetchChatData = async () => {
+    const match = pathname?.match(/\/chat\/([^/]+)/);
+    const chatId = match?.[1];
+
+    if (chatId && session?.user?.email) {
+      setIsInChatRoom(true);
+      try {
+        const chatDocRef = doc(
+          db,
+          "users",
+          session.user.email as string,
+          "chats",
+          chatId
+        );
+        const chatDoc = await getDoc(chatDocRef);
+
+        if (chatDoc.exists()) {
+          const chatData = chatDoc.data();
+          setTitle(chatData.title || "New Chat");
+          setModel(chatData.model || "gpt-4o");
+        } else {
+          setTitle("New Chat");
+          setModel("gpt-4o");
+        }
+      } catch (error) {
+        console.error("Error fetching chat data:", error);
+        setTitle("New Chat");
+        setModel("gpt-4o");
+      }
+    } else {
+      setIsInChatRoom(false);
+      setTitle("");
+      setModel("gpt-4o");
+    }
+  };
+
+  useEffect(() => {
+    fetchChatData();
+  }, [pathname, session]);
 
   useEffect(() => {
     if (session?.user?.image) {
@@ -81,7 +129,7 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
   };
 
   return (
-    <div className="absolute top-0 left-0 grid items-center justify-between w-full grid-cols-3 px-5 py-2 shadow-xl">
+    <div className="absolute top-0 left-0 grid items-center justify-between w-full grid-cols-3 px-5 py-2 shadow-xl bg-[#212121]">
       <div className="justify-self-start">
         <div>
           <Popover open={open} onOpenChange={setOpen}>
@@ -89,15 +137,18 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
               <Button
                 role="combobox"
                 aria-expanded={open}
-                className=" flex items-center gap-1 justify-between bg-[#2F2F2F] hover:bg-primaryGray/50 px-3 py-2 rounded-lg text-primary-foreground/80 font-semibold tracking-wide text-base"
+                className={`flex items-center gap-1 justify-between bg-[#2F2F2F] px-3 py-2 rounded-lg text-primary-foreground/80 font-semibold tracking-wide text-base ${
+                  !session?.user || !isInChatRoom
+                    ? "cursor-default opacity-60"
+                    : "hover:bg-primaryGray/50"
+                }`}
+                disabled={!session?.user || !isInChatRoom}
               >
                 {"ChatGPT"}
-                {value && (
-                  <>
-                    <span className="font-light text-white/50">
-                      {frameworks.find((f) => f.value === value)?.label}
-                    </span>
-                  </>
+                {isInChatRoom && model && (
+                  <span className="font-light text-white/50">
+                    {frameworks.find((f) => f.value === model)?.label || model}
+                  </span>
                 )}
                 <FiChevronDown className="text-lg" />
               </Button>
@@ -118,9 +169,31 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
                         className="py-3 text-white hover:bg-white/30 rounded-xl"
                         key={framework.value}
                         value={framework.value}
-                        onSelect={(currentValue) => {
-                          setValue(currentValue === value ? "" : currentValue);
+                        onSelect={async (currentValue) => {
+                          if (!session?.user?.email || !isInChatRoom) return;
+
+                          const newModel =
+                            currentValue === model ? "" : currentValue;
                           setOpen(false);
+
+                          // Update di Firestore
+                          const match = pathname?.match(/\/chat\/([^/]+)/);
+                          const chatId = match?.[1];
+
+                          if (chatId && newModel && session.user.email) {
+                            try {
+                              const chatDocRef = doc(
+                                db,
+                                "users",
+                                session.user.email,
+                                "chats",
+                                chatId
+                              );
+                              await updateDoc(chatDocRef, { model: newModel });
+                            } catch (error) {
+                              console.error("Error updating model:", error);
+                            }
+                          }
                         }}
                       >
                         <div>
@@ -129,11 +202,10 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
                             {framework.description}
                           </p>
                         </div>
-
                         <Check
                           className={cn(
                             "ml-auto",
-                            value === framework.value
+                            model === framework.value
                               ? "opacity-100 text-white w-4 h-4"
                               : "opacity-0"
                           )}
@@ -158,8 +230,10 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
       </div>
 
       {/* For User Greetigns */}
-      <div className="justify-self-center ">
-        {session?.user ? (
+      <div className="justify-self-center">
+        {isInChatRoom && session?.user ? (
+          <p className="text-lg font-bold">{title}</p>
+        ) : session?.user ? (
           <p className="text-lg font-bold">Hello, {session.user.name}</p>
         ) : (
           <p className="text-lg font-bold">Hello</p>
@@ -193,8 +267,15 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
           <MenuItems
             transition
             anchor="bottom end"
-            className="p-2 origin-top-right mt-2 rounded-xl border border-primary-foreground/20 bg-[#2F2F2F] text-primary-foreground"
+            className="p-2 origin-top-right mt-2 rounded-xl border border-primary-foreground/20 bg-[#2F2F2F] text-primary-foreground w-64"
           >
+            {session?.user ? (
+              <div className="border-b border-white/30 px-3 py-2">
+                <p className="text-sm text-white/70">{session.user.email}</p>
+              </div>
+            ) : (
+              ""
+            )}
             <MenuItem>
               <div className="group flex w-full items-center gap-3 rounded-lg p-3 cursor-pointer data-[focus]:bg-white/10">
                 <div className="w-7 h-7 bg-[#B4B4B440] rounded-full flex items-center justify-center">
@@ -203,16 +284,6 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
                 <p className="text-sm font-medium tracking-wide">Profil</p>
               </div>
             </MenuItem>
-            {/* <MenuItem>
-              <div className="group flex w-full items-center gap-3 rounded-lg p-3 cursor-pointer data-[focus]:bg-white/10">
-                <div className="w-7 h-7 bg-[#B4B4B440] rounded-full flex items-center justify-center">
-                  <MdOutlineDashboardCustomize className="text-base" />
-                </div>
-                <p className="text-sm font-medium tracking-wide">
-                  Customize ChatGPT
-                </p>
-              </div>
-            </MenuItem> */}
             <MenuItem>
               <div className="group flex w-full items-center gap-3 rounded-lg p-3 cursor-pointer data-[focus]:bg-white/10">
                 <div className="w-7 h-7 bg-[#B4B4B440] rounded-full flex items-center justify-center">

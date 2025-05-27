@@ -7,8 +7,9 @@ import { FormEvent, useState } from "react";
 import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import { ImArrowUpRight2 } from "react-icons/im";
-import { IoChatboxEllipses } from "react-icons/io5";
+import { IoMdAdd } from "react-icons/io";
 import useSWR from "swr";
+import { VscVscodeInsiders } from "react-icons/vsc";
 
 const ChatInput = ({ id }: { id?: string }) => {
   const chatId = id;
@@ -26,13 +27,19 @@ const ChatInput = ({ id }: { id?: string }) => {
     : "unknown";
   const userName = session?.user ? (session?.user?.email as string) : "unknown";
 
-  const sendMessage = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!prompt) return;
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setPrompt(e.target.value);
 
-    const input = prompt.trim();
+    // Auto-resize logic
+    e.target.style.height = "auto";
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
+  };
+
+  const sendMessage = async (input: string) => {
+    if (!input.trim()) return;
+
     const message: Message = {
-      text: input,
+      text: input.trim(),
       createdAt: serverTimestamp(),
       user: {
         _id: userEmail,
@@ -47,7 +54,6 @@ const ChatInput = ({ id }: { id?: string }) => {
       setLoading(true);
       let chatDocumentId = chatId;
 
-      // If no chat ID is provided, create a new chat and get the ID
       if (!chatId) {
         const docRef = await addDoc(
           collection(db, "users", userEmail, "chats"),
@@ -60,7 +66,6 @@ const ChatInput = ({ id }: { id?: string }) => {
         router.push(`/chat/${chatDocumentId}`);
       }
 
-      // Add the message to the new or existing chat
       await addDoc(
         collection(
           db,
@@ -74,10 +79,8 @@ const ChatInput = ({ id }: { id?: string }) => {
       );
       setPrompt("");
 
-      // Toast notification 'loading'
       const notification = toast.loading("Chatbot is thinking...");
 
-      // Send request to ChatGPT API
       await fetch("/api/askchat", {
         method: "POST",
         headers: {
@@ -110,28 +113,61 @@ const ChatInput = ({ id }: { id?: string }) => {
     }
   };
 
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    sendMessage(prompt);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage(prompt);
+      setPrompt("");
+    }
+  };
+
   return (
     <div className="w-full flex flex-col items-center justify-center max-w-3xl mx-auto pt-3">
       <form
-        onSubmit={sendMessage}
-        className="bg-white/10 rounded-full flex items-center px-4 py-2.5 w-full"
+        onSubmit={handleSubmit}
+        className="bg-white/10 rounded-2xl items-center px-4 py-2.5 w-full"
       >
-        <IoChatboxEllipses className="text-3xl text-primary-foreground" />
-        <input
-          type="text"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Message ChatGPT"
-          className="bg-transparent text-primary-foreground font-medium placeholder:text-primary-foreground/50 px-3 outline-none w-full"
-          disabled={loading}
-        />
-        <button
-          disabled={!prompt || loading}
-          type="submit"
-          className={`p-2.5 rounded-full text-black flex items-center justify-center transition-transform duration-200 bg-white disabled:bg-white/30`}
-        >
-          <ImArrowUpRight2 className="-rotate-45 text-sm text-primary/80" />
-        </button>
+        <div>
+          <textarea
+            // type="text"
+            rows={1}
+            value={prompt}
+            // onChange={(e) => setPrompt(e.target.value)}
+            onInput={handleInput}
+            onKeyDown={handleKeyDown}
+            placeholder="Message ChatGPT"
+            className="bg-transparent mt-2 text-primary-foreground font-medium placeholder:text-primary-foreground/50 outline-none w-full resize-none"
+            disabled={loading}
+          />
+        </div>
+        <div className="flex justify-between items-center mt-2">
+          {/* <IoChatboxEllipses className="text-2xl text-primary-foreground" /> */}
+          <div className="flex gap-3 items-center">
+            <div className="rounded-full hover:bg-white/50 cursor-pointer">
+              <IoMdAdd className="text-xl text-primary-foreground" />
+            </div>
+            <div className="border border-white/50 rounded-full hover:bg-white/50 cursor-pointer py-1 px-2">
+              <p className="text-primary-foreground text-xs">ChtGPT-4o</p>
+            </div>
+            <div className="border border-white/50 rounded-full hover:bg-white/50 cursor-pointer py-1 px-2 flex gap-1 items-center">
+              <VscVscodeInsiders />
+              <p className="text-primary-foreground text-xs">web development</p>
+            </div>
+          </div>
+
+          <button
+            disabled={!prompt || loading}
+            type="submit"
+            className={`p-2 rounded-full text-black flex items-center justify-center transition-transform duration-200 bg-white disabled:bg-white/30`}
+          >
+            <ImArrowUpRight2 className="-rotate-45 text-sm text-primary/80" />
+          </button>
+        </div>
       </form>
 
       {id && (
