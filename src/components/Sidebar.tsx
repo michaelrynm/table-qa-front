@@ -22,11 +22,20 @@ const Sidebar = () => {
   );
   const router = useRouter();
 
+  // Versi dengan pengecekan lebih detail
   useEffect(() => {
-    if (!chats) {
+    // Hanya redirect jika semua kondisi terpenuhi:
+    if (
+      session !== undefined && // Session sudah selesai loading
+      !loading && // Firebase query sudah selesai
+      session?.user && // User sudah login
+      chats !== undefined && // Query chats sudah dijalankan
+      (!chats || chats.docs.length === 0) && // Tidak ada chats
+      window.location.pathname !== "/" // Bukan di homepage
+    ) {
       router.push("/");
     }
-  }, [chats, router]);
+  }, [chats, loading, session, router]);
 
   return (
     <div className="hidden md:inline-flex flex-col w-full h-screen p-2 relative">

@@ -13,8 +13,8 @@ const SignOut = () => {
   const handleSignOut = () => {
     setIsOpen(false);
     signOut();
-    router.push("/signin");
     toast.success("Sign out successfully!");
+    router.push("/");
   };
 
   function open() {

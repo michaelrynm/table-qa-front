@@ -30,7 +30,7 @@ import { CommandSeparator } from "cmdk";
 import { Session } from "next-auth";
 
 interface HeaderClientProps {
-  session: Session | null; // 👈 Tambahkan ini
+  session: Session | null;
 }
 
 const frameworks = [

@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
   const [password, setPassword] = useState<string>("");
   const modalRef = useRef<HTMLDivElement>(null);
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+  const router = useRouter();
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -47,6 +49,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
     const result = await signIn("credentials", {
       email,
       password,
@@ -63,7 +66,8 @@ const SignInModal: React.FC<SignInModalProps> = ({
       setEmail("");
       setPassword("");
       setIsLoading(false);
-      onClose();
+      onClose(); // tutup modal dulu
+      router.push("/");
     }
   };
 
@@ -92,7 +96,9 @@ const SignInModal: React.FC<SignInModalProps> = ({
             className="flex flex-col w-full gap-5"
           >
             <div>
-              <label htmlFor="email">Email</label>
+              <label htmlFor="email" className="text-white">
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
@@ -103,7 +109,9 @@ const SignInModal: React.FC<SignInModalProps> = ({
             </div>
 
             <div>
-              <label htmlFor="password">Password</label>
+              <label htmlFor="password" className="text-white">
+                Password
+              </label>
               <div className="relative">
                 {isPasswordVisible ? (
                   <FaRegEye
@@ -140,7 +148,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
               )}
             </button>
             <div className="text-right">
-              <p className="text-sm">
+              <p className="text-sm text-white/80">
                 Don&#39;t have an account?
                 <span
                   onClick={onSwitchToRegister}
