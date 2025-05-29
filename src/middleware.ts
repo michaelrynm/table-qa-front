@@ -9,7 +9,6 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({
     req,
     secret: process.env.NEXTAUTH_SECRET,
-    cookieName: "__Secure-next-auth.session-token", // atau 'next-auth.session-token' jika bukan HTTPS
   });
 
   console.log("🧪 Cookie header:", req.headers.get("cookie"));

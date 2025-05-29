@@ -168,7 +168,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
         </div>
 
         <button
-          onClick={() => signIn("google")}
+          onClick={() => signIn("google", { callbackUrl: "/" })}
           className="flex items-center justify-center w-full gap-2 px-6 py-2 text-base font-semibold duration-300 ease-in-out border rounded-md border-white/50 hover:border-white text-white/80 hover:text-white"
         >
           <Image src={googleImage} alt="googleImage" className="w-6 h-6" />

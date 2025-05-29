@@ -11,6 +11,7 @@ const NewChat = () => {
   const router = useRouter();
   const { data: session } = useSession();
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const [title, setTitle] = useState("");
   const [selectedModel, setSelectedModel] = useState("gpt-4o");
   const [isLoading, setIsLoading] = useState(false);
