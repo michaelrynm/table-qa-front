@@ -10,6 +10,7 @@ import { ImArrowUpRight2 } from "react-icons/im";
 import { IoMdAdd } from "react-icons/io";
 import useSWR from "swr";
 import { VscVscodeInsiders } from "react-icons/vsc";
+import { FaSpinner } from "react-icons/fa6";
 
 const ChatInput = ({ id }: { id?: string }) => {
   const chatId = id;
@@ -165,7 +166,11 @@ const ChatInput = ({ id }: { id?: string }) => {
             type="submit"
             className={`p-2 rounded-full text-black flex items-center justify-center transition-transform duration-200 bg-white disabled:bg-white/30`}
           >
-            <ImArrowUpRight2 className="-rotate-45 text-sm text-primary/80" />
+            {loading ? (
+              <FaSpinner className="animate-spin" />
+            ) : (
+              <ImArrowUpRight2 className="-rotate-45 text-sm text-primary/80" />
+            )}
           </button>
         </div>
       </form>

@@ -10,6 +10,7 @@ import Link from "next/link";
 import NewChat from "./NewChat";
 import ChatRow from "./ChatRow";
 import Image from "next/image";
+import { AiOutlineHome } from "react-icons/ai";
 
 const Sidebar = () => {
   const { data: session } = useSession();
@@ -22,16 +23,14 @@ const Sidebar = () => {
   );
   const router = useRouter();
 
-  // Versi dengan pengecekan lebih detail
   useEffect(() => {
-    // Hanya redirect jika semua kondisi terpenuhi:
     if (
-      session !== undefined && // Session sudah selesai loading
-      !loading && // Firebase query sudah selesai
-      session?.user && // User sudah login
-      chats !== undefined && // Query chats sudah dijalankan
-      (!chats || chats.docs.length === 0) && // Tidak ada chats
-      window.location.pathname !== "/" // Bukan di homepage
+      session !== undefined &&
+      !loading &&
+      session?.user &&
+      chats !== undefined &&
+      (!chats || chats.docs.length === 0) &&
+      window.location.pathname !== "/"
     ) {
       router.push("/");
     }
@@ -87,6 +86,19 @@ const Sidebar = () => {
             </Link>
           </div>
         )
+      )}
+      {session?.user && !loading && (
+        <Link href={"/"}>
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition-all duration-200 group cursor-pointer">
+            <AiOutlineHome
+              size={20}
+              className="text-white/60 group-hover:text-white/80 transition-colors duration-200"
+            />
+            <p className="text-white/70 font-medium group-hover:text-white/90 transition-colors duration-200">
+              Beranda
+            </p>
+          </div>
+        </Link>
       )}
     </div>
   );

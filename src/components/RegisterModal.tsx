@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { googleImage } from "../app/assets";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
@@ -14,7 +14,6 @@ interface RegisterModalProps {
 
 const RegisterModal: React.FC<RegisterModalProps> = ({
   isOpen,
-  onClose,
   onSwitchToSignIn,
 }) => {
   const [fullName, setFullName] = useState<string>("");
@@ -30,26 +29,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   }>({});
   const modalRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  // Close modal when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        modalRef.current &&
-        !modalRef.current.contains(event.target as Node)
-      ) {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isOpen, onClose]);
 
   // Validate form
   const validateForm = (): boolean => {
@@ -122,169 +101,174 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 z-[999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div
         ref={modalRef}
-        className="bg-[#2F2F2F] w-96 flex flex-col gap-5 items-center justify-center rounded-lg p-6 shadow-xl"
+        className="bg-gradient-to-br from-[#1a1a1a] to-[#212121] rounded-2xl shadow-2xl w-full max-w-md border border-white/10 animate-in zoom-in-95 duration-200"
       >
-        <div className="px-5 text-center place-items-center">
-          <Image src={"/favicon.ico"} width={64} height={64} alt="logo" />
-          <p className="text-3xl font-bold tracking-wide text-white">
-            Create account
-          </p>
-          <p className="text-sm tracking-wide mt-2 font-medium text-white/70">
+        {/* Header */}
+        <div className="p-6 pb-4 border-b border-white/10 text-center">
+          <Image
+            src="/favicon.ico"
+            alt="logo"
+            width={64}
+            height={64}
+            className="mx-auto"
+          />
+          <h2 className="text-xl font-bold text-white mt-3">Create account</h2>
+          <p className="text-sm text-gray-400 mt-1">
             Sign up to get smarter responses, upload files and images, and more.
           </p>
         </div>
 
-        <div className="w-full">
-          <form
-            onSubmit={handleRegister}
-            className="flex flex-col gap-4 w-full"
-          >
-            <div>
-              <label
-                htmlFor="fullName"
-                className="text-white text-sm mb-1 block"
-              >
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="fullName"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
-              />
-              {errors.fullName && (
-                <p className="text-red-400 text-xs mt-1">{errors.fullName}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="email" className="text-white text-sm mb-1 block">
-                Email
-              </label>
-              <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
-              />
-              {errors.email && (
-                <p className="text-red-400 text-xs mt-1">{errors.email}</p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="password"
-                className="text-white text-sm mb-1 block"
-              >
-                Password
-              </label>
-              <div className="relative">
-                {isPasswordVisible ? (
-                  <FaRegEye
-                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  />
-                ) : (
-                  <FaRegEyeSlash
-                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  />
-                )}
-                <input
-                  type={isPasswordVisible ? "text" : "password"}
-                  id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
-                />
-              </div>
-
-              {errors.password && (
-                <p className="text-red-400 text-xs mt-1">{errors.password}</p>
-              )}
-            </div>
-
-            <div>
-              <label
-                htmlFor="confirmPassword"
-                className="text-white text-sm mb-1 block"
-              >
-                Confirm Password
-              </label>
-              <div className="relative">
-                {isPasswordVisible ? (
-                  <FaRegEye
-                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  />
-                ) : (
-                  <FaRegEyeSlash
-                    className="absolute text-white -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                    onClick={() => setIsPasswordVisible(!isPasswordVisible)}
-                  />
-                )}
-                <input
-                  type={isPasswordVisible ? "text" : "password"}
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="bg-[#3A3A3A] border border-white/20 rounded-md px-4 py-2 text-white w-full"
-                />
-              </div>
-
-              {errors.confirmPassword && (
-                <p className="text-red-400 text-xs mt-1">
-                  {errors.confirmPassword}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              className="bg-white text-black py-2 px-6 rounded-md text-base font-semibold hover:bg-white/90 duration-300 ease-in-out mt-2"
-              disabled={isLoading}
+        {/* Form */}
+        <form onSubmit={handleRegister} className="p-6 space-y-5">
+          {/* Full Name */}
+          <div>
+            <label
+              htmlFor="fullName"
+              className="text-sm font-medium text-white"
             >
-              {isLoading ? (
-                <div className="flex justify-center">
-                  <Loader2 className="animate-spin" />
-                </div>
+              Full Name
+            </label>
+            <input
+              id="fullName"
+              type="text"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full px-4 py-3 bg-[#2a2a2a] border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500/50 transition-all duration-200"
+            />
+            {errors.fullName && (
+              <p className="text-red-400 text-xs mt-1">{errors.fullName}</p>
+            )}
+          </div>
+
+          {/* Email */}
+          <div>
+            <label htmlFor="email" className="text-sm font-medium text-white">
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-3 bg-[#2a2a2a] border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500/50 transition-all duration-200"
+            />
+            {errors.email && (
+              <p className="text-red-400 text-xs mt-1">{errors.email}</p>
+            )}
+          </div>
+
+          {/* Password */}
+          <div>
+            <label
+              htmlFor="password"
+              className="text-sm font-medium text-white"
+            >
+              Password
+            </label>
+            <div className="relative">
+              <input
+                id="password"
+                type={isPasswordVisible ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-3 pr-10 bg-[#2a2a2a] border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500/50 transition-all duration-200"
+              />
+              {isPasswordVisible ? (
+                <FaRegEye
+                  onClick={() => setIsPasswordVisible(false)}
+                  className="absolute top-1/2 right-4 -translate-y-1/2 text-white cursor-pointer"
+                />
               ) : (
-                "Sign Up"
+                <FaRegEyeSlash
+                  onClick={() => setIsPasswordVisible(true)}
+                  className="absolute top-1/2 right-4 -translate-y-1/2 text-white cursor-pointer"
+                />
               )}
-            </button>
-            <div className="text-right">
-              <p className="text-sm text-white">
-                Already have an account?
-                <span
-                  onClick={onSwitchToSignIn}
-                  className="font-bold cursor-pointer ml-1 text-white"
-                >
-                  Sign In
-                </span>
-              </p>
             </div>
-          </form>
-        </div>
+            {errors.password && (
+              <p className="text-red-400 text-xs mt-1">{errors.password}</p>
+            )}
+          </div>
 
-        <div className="flex items-center gap-2 w-full my-4">
-          <div className="border-t border-white/30 flex-grow" />
-          <span className="text-white text-sm font-medium">or</span>
-          <div className="border-t border-white/30 flex-grow" />
-        </div>
+          {/* Confirm Password */}
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="text-sm font-medium text-white"
+            >
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                id="confirmPassword"
+                type={isPasswordVisible ? "text" : "password"}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 pr-10 bg-[#2a2a2a] border border-white/20 rounded-xl text-white focus:ring-2 focus:ring-blue-500/50 transition-all duration-200"
+              />
+              {isPasswordVisible ? (
+                <FaRegEye
+                  onClick={() => setIsPasswordVisible(false)}
+                  className="absolute top-1/2 right-4 -translate-y-1/2 text-white cursor-pointer"
+                />
+              ) : (
+                <FaRegEyeSlash
+                  onClick={() => setIsPasswordVisible(true)}
+                  className="absolute top-1/2 right-4 -translate-y-1/2 text-white cursor-pointer"
+                />
+              )}
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-red-400 text-xs mt-1">
+                {errors.confirmPassword}
+              </p>
+            )}
+          </div>
 
-        <button
-          onClick={() => signIn("google")}
-          className="border border-white/50 py-2 px-6 rounded-md text-base font-semibold flex items-center gap-2 hover:border-white text-white/80 hover:text-white duration-300 ease-in-out w-full justify-center"
-        >
-          <Image src={googleImage} alt="googleImage" className="w-6 h-6" />
-          Sign up with Google
-        </button>
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl"
+          >
+            {isLoading ? (
+              <Loader2 className="animate-spin w-5 h-5" />
+            ) : (
+              "Sign Up"
+            )}
+          </button>
+
+          {/* Switch to sign in */}
+          <p className="text-sm text-white text-center">
+            Already have an account?{" "}
+            <span
+              onClick={onSwitchToSignIn}
+              className="ml-1 font-bold text-white cursor-pointer hover:underline"
+            >
+              Sign In
+            </span>
+          </p>
+
+          {/* Divider */}
+          <div className="flex items-center w-full gap-2 my-2">
+            <div className="flex-grow border-t border-white/30" />
+            <span className="text-sm font-medium text-white">or</span>
+            <div className="flex-grow border-t border-white/30" />
+          </div>
+
+          {/* Google Sign up */}
+          <button
+            onClick={() => signIn("google")}
+            type="button"
+            className="flex items-center justify-center w-full gap-3 px-4 py-3 bg-white/5 border border-white/20 text-white rounded-xl hover:bg-white/10 transition-all duration-200"
+          >
+            <Image src={googleImage} alt="google" className="w-6 h-6" />
+            <span>Sign up with Google</span>
+          </button>
+        </form>
       </div>
     </div>
   );

@@ -1,12 +1,14 @@
 "use client";
 import { Menu, MenuButton, MenuItem, MenuItems } from "@headlessui/react";
 import Image, { StaticImageData } from "next/image";
-import { FiChevronDown, FiUserPlus } from "react-icons/fi";
-import { PiGearSix } from "react-icons/pi";
+import {
+  FiChevronDown,
+  FiChevronRight,
+  FiUser,
+  FiUserPlus,
+} from "react-icons/fi";
 import SignOut from "./SignOut";
 import { useState, useEffect } from "react";
-import SignInModal from "./SignInModal";
-import RegisterModal from "./RegisterModal";
 import { useSession } from "next-auth/react";
 import Avatar from "@/src/app/assets/images/avatar1.png";
 import { usePathname } from "next/navigation";
@@ -28,6 +30,7 @@ import {
 } from "@/components/ui/popover";
 import { CommandSeparator } from "cmdk";
 import { Session } from "next-auth";
+import DeleteAllChatsModal from "./DeleteAllChatModal";
 
 interface HeaderClientProps {
   session: Session | null;
@@ -35,7 +38,7 @@ interface HeaderClientProps {
 
 const frameworks = [
   {
-    value: "gpt-4o", // huruf kecil
+    value: "gpt-4o",
     label: "GPT-4o",
     description: "Great for most tasks",
   },
@@ -53,21 +56,12 @@ const frameworks = [
 
 const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
   const { data: clientSession } = useSession();
-
   const session = serverSession || clientSession;
-  // state for combobox
   const [open, setOpen] = useState(false);
-
-  const [isSignInModalOpen, setIsSignInModalOpen] = useState<boolean>(false);
-  const [isRegisterModalOpen, setIsRegisterModalOpen] =
-    useState<boolean>(false);
-  // const { data: session } = useSession();
   const [imageSrc, setImageSrc] = useState<string | StaticImageData>(
     session?.user?.image || Avatar
   );
-
   const pathname = usePathname();
-
   const [title, setTitle] = useState<string>("");
   const [model, setModel] = useState<string>("");
   const [isInChatRoom, setIsInChatRoom] = useState<boolean>(false);
@@ -118,16 +112,6 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
     }
   }, [session]);
 
-  const switchToSignIn = () => {
-    setIsRegisterModalOpen(false);
-    setIsSignInModalOpen(true);
-  };
-
-  const switchToRegister = () => {
-    setIsSignInModalOpen(false);
-    setIsRegisterModalOpen(true);
-  };
-
   return (
     <div className="absolute top-0 left-0 grid items-center justify-between w-full grid-cols-3 px-5 py-2 shadow-xl bg-[#212121]">
       <div className="justify-self-start">
@@ -137,12 +121,7 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
               <Button
                 role="combobox"
                 aria-expanded={open}
-                className={`flex items-center gap-1 justify-between bg-[#2F2F2F] px-3 py-2 rounded-lg text-primary-foreground/80 font-semibold tracking-wide text-base ${
-                  !session?.user || !isInChatRoom
-                    ? "cursor-default opacity-60"
-                    : "hover:bg-primaryGray/50"
-                }`}
-                disabled={!session?.user || !isInChatRoom}
+                className={`flex items-center gap-1 justify-between bg-[#2F2F2F] px-3 py-2 rounded-lg text-primary-foreground/80 font-semibold tracking-wide text-base hover:bg-primaryGray/50`}
               >
                 {"ChatGPT"}
                 {isInChatRoom && model && (
@@ -170,17 +149,12 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
                         key={framework.value}
                         value={framework.value}
                         onSelect={async (currentValue) => {
-                          if (!session?.user?.email || !isInChatRoom) return;
-
                           const newModel =
                             currentValue === model ? "" : currentValue;
                           setOpen(false);
-
-                          // Update di Firestore
                           const match = pathname?.match(/\/chat\/([^/]+)/);
                           const chatId = match?.[1];
-
-                          if (chatId && newModel && session.user.email) {
+                          if (chatId && newModel && session?.user?.email) {
                             try {
                               const chatDocRef = doc(
                                 db,
@@ -229,90 +203,100 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
         </div>
       </div>
 
-      {/* For User Greetigns */}
       <div className="justify-self-center">
         {isInChatRoom && session?.user ? (
           <p className="text-lg font-bold">{title}</p>
-        ) : session?.user ? (
-          <p className="text-lg font-bold">Hello, {session.user.name}</p>
         ) : (
-          <p className="text-lg font-bold">Hello</p>
+          <p className="text-lg font-bold">Hello, {session?.user?.name}</p>
         )}
       </div>
 
       <div className="flex items-center gap-3 justify-self-end">
-        {/* <ModeToggle /> */}
         <Menu>
-          {session?.user ? (
-            <MenuButton className="w-8 h-8 mr-2 font-semibold tracking-wide duration-300 rounded-full ring-4 ring-white/10 hover:ring-white/50">
-              <Image
-                src={imageSrc}
-                alt="userImage"
-                width={400}
-                height={400}
-                priority
-                className="object-cover w-full h-full rounded-full"
-                onError={() => setImageSrc("/logoLight.png")}
-              />
-            </MenuButton>
-          ) : (
-            <button
-              onClick={() => setIsSignInModalOpen(true)}
-              className="text-sm font-semibold duration-300 hover:text-white"
-            >
-              Sign in
-            </button>
-          )}
+          <MenuButton className="relative group w-10 h-10 mr-2 font-semibold tracking-wide duration-300 rounded-xl ring-2 ring-white/10 hover:ring-white/30 hover:shadow-lg hover:shadow-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm">
+            <Image
+              src={imageSrc}
+              alt="userImage"
+              width={400}
+              height={400}
+              priority
+              className="object-cover w-full h-full rounded-xl transition-transform duration-300 group-hover:scale-105"
+              onError={() => setImageSrc("/logoLight.png")}
+            />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#2F2F2F] shadow-lg animate-pulse" />
+          </MenuButton>
 
           <MenuItems
             transition
             anchor="bottom end"
-            className="p-2 origin-top-right mt-2 rounded-xl border border-primary-foreground/20 bg-[#2F2F2F] text-primary-foreground w-64"
+            className="p-1 origin-top-right mt-3 rounded-2xl border border-white/10 bg-[#2F2F2F]/95 backdrop-blur-xl text-primary-foreground w-72 shadow-2xl shadow-black/50 transition-all duration-200 data-[closed]:scale-95 data-[closed]:opacity-0"
           >
-            {session?.user ? (
-              <div className="border-b border-white/30 px-3 py-2">
-                <p className="text-sm text-white/70">{session.user.email}</p>
-              </div>
-            ) : (
-              ""
-            )}
-            <MenuItem>
-              <div className="group flex w-full items-center gap-3 rounded-lg p-3 cursor-pointer data-[focus]:bg-white/10">
-                <div className="w-7 h-7 bg-[#B4B4B440] rounded-full flex items-center justify-center">
-                  <FiUserPlus className="text-base" />
+            <div className="border-b border-white/10 px-4 py-3 bg-gradient-to-r from-white/5 to-transparent rounded-t-2xl">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/10">
+                  <FiUser className="text-sm text-white/80" />
                 </div>
-                <p className="text-sm font-medium tracking-wide">Profil</p>
-              </div>
-            </MenuItem>
-            <MenuItem>
-              <div className="group flex w-full items-center gap-3 rounded-lg p-3 cursor-pointer data-[focus]:bg-white/10">
-                <div className="w-7 h-7 bg-[#B4B4B440] rounded-full flex items-center justify-center">
-                  <PiGearSix className="text-base" />
+                <div>
+                  <p className="text-xs text-white/60 font-medium uppercase tracking-wider">
+                    Akun Aktif
+                  </p>
+                  <p className="text-sm text-white/90 font-medium truncate">
+                    {session?.user?.email}
+                  </p>
                 </div>
-                <p className="text-sm font-medium tracking-wide">Pengaturan</p>
               </div>
-            </MenuItem>
+            </div>
 
-            <div className="h-px my-1 bg-primary-foreground/20" />
-            <MenuItem>
-              <SignOut />
-            </MenuItem>
+            <div className="p-2 space-y-1">
+              <MenuItem>
+                <button className="group flex w-full items-center gap-3 rounded-xl p-3 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:shadow-lg hover:shadow-white/5">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl flex items-center justify-center border border-blue-500/20 group-hover:border-blue-400/40 transition-colors duration-200">
+                    <FiUserPlus className="text-sm text-blue-400 group-hover:text-blue-300 transition-colors duration-200" />
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="text-sm font-medium text-white group-hover:text-white/90 transition-colors duration-200">
+                      Profil
+                    </p>
+                    <p className="text-xs text-white/50 group-hover:text-white/60 transition-colors duration-200">
+                      Kelola informasi akun
+                    </p>
+                  </div>
+                  <FiChevronRight className="text-white/30 group-hover:text-white/50 group-hover:translate-x-1 transition-all duration-200" />
+                </button>
+              </MenuItem>
+
+              <MenuItem>
+                <div
+                  className="rounded-xl overflow-hidden"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  <DeleteAllChatsModal />
+                </div>
+              </MenuItem>
+            </div>
+
+            <div className="h-px mx-3 my-2 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+            <div className="p-2">
+              <MenuItem>
+                <div
+                  className="rounded-xl overflow-hidden"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  <SignOut />
+                </div>
+              </MenuItem>
+            </div>
           </MenuItems>
         </Menu>
       </div>
-
-      {/* SignInModal */}
-      <SignInModal
-        isOpen={isSignInModalOpen}
-        onClose={() => setIsSignInModalOpen(false)}
-        onSwitchToRegister={switchToRegister}
-      />
-      {/* Register Modal */}
-      <RegisterModal
-        isOpen={isRegisterModalOpen}
-        onClose={() => setIsRegisterModalOpen(false)}
-        onSwitchToSignIn={switchToSignIn}
-      />
     </div>
   );
 };
