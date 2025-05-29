@@ -5,7 +5,6 @@ import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -23,7 +22,6 @@ const SignInModal: React.FC<SignInModalProps> = ({
   const [password, setPassword] = useState<string>("");
   const modalRef = useRef<HTMLDivElement>(null);
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
-  const router = useRouter();
 
   // Close modal when clicking outside
   useEffect(() => {
