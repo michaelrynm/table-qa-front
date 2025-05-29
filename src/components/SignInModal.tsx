@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
   const [password, setPassword] = useState<string>("");
   const modalRef = useRef<HTMLDivElement>(null);
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
+  const router = useRouter();
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -48,28 +50,42 @@ const SignInModal: React.FC<SignInModalProps> = ({
     e.preventDefault();
     setIsLoading(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      // redirect: false,
-      callbackUrl: "/"
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false, // ✅ Aktifkan ini untuk handle response
+      });
 
-    if (result?.error) {
-      alert("Login failed. Try user@example.com / password123");
-      setEmail("");
-      setPassword("");
+      // ✅ NextAuth v5 response structure
+      if (result?.error) {
+        console.error("Login error:", result.error);
+        alert("Login failed. Try user@example.com / password123");
+        setEmail("");
+        setPassword("");
+      } else if (result?.ok) {
+        // ✅ Login berhasil
+        toast.success("Sign In successfully!");
+        setEmail("");
+        setPassword("");
+        onClose(); // tutup modal
+
+        // ✅ Manual redirect atau biarkan middleware handle
+        router.push("/");
+        // Atau: window.location.href = "/"; untuk hard refresh
+      } else {
+        // ✅ Handle unexpected response
+        console.warn("Unexpected login result:", result);
+        alert("Login failed. Please try again.");
+      }
+    } catch (error) {
+      // ✅ Handle network atau error lainnya
+      console.error("Login exception:", error);
+      alert("Login failed. Please check your connection.");
+    } finally {
       setIsLoading(false);
-    } else {
-      toast.success("Sign In successfully!");
-      setEmail("");
-      setPassword("");
-      setIsLoading(false);
-      onClose(); // tutup modal dulu
-      // router.push("/");
     }
   };
-
   if (!isOpen) return null;
 
   return (

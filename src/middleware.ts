@@ -1,38 +1,29 @@
 // middleware.ts
-import { getToken } from "next-auth/jwt";
-import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth"; // Import dari auth config Anda
+import { NextResponse } from "next/server";
 
-export async function middleware(req: NextRequest) {
+export default auth((req) => {
   console.log("🔥 Middleware running for:", req.nextUrl.pathname);
-
-  // ✅ Tambahkan cookieName eksplisit
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-
-  console.log("🧪 Cookie header:", req.headers.get("cookie"));
-  console.log("🔑 Token:", token ? "exists" : "null");
+  console.log("🔑 Session:", req.auth ? "exists" : "null");
 
   const { pathname } = req.nextUrl;
 
-  // Izinkan akses ke halaman login
-  if (pathname === "/login") {
-    console.log("✅ Allowing access to login page");
+  // Izinkan akses ke halaman login dan API auth
+  if (pathname === "/login" || pathname.startsWith("/api/auth")) {
+    console.log("✅ Allowing access to login/auth pages");
     return NextResponse.next();
   }
 
-  // Jika tidak ada token, redirect ke /login
-  if (!token) {
-    console.log("❌ No token, redirecting to login");
-    const loginUrl = req.nextUrl.clone();
-    loginUrl.pathname = "/login";
+  // Jika tidak ada session, redirect ke /login
+  if (!req.auth) {
+    console.log("❌ No session, redirecting to login");
+    const loginUrl = new URL("/login", req.nextUrl.origin);
     return NextResponse.redirect(loginUrl);
   }
 
-  console.log("✅ Token found, allowing access");
+  console.log("✅ Session found, allowing access");
   return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: ["/((?!api|_next|favicon.ico).*)"],

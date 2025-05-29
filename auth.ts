@@ -1,13 +1,15 @@
+// auth.ts
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret: process.env.NEXTAUTH_SECRET,
   providers: [
-    Google,
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
-      // Menampilkan form di UI
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
@@ -21,7 +23,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           email: "user@example.com",
         };
 
-        // Validasi sederhana (gunakan database sebenarnya jika sudah siap)
+        // Validasi sederhana
         if (
           credentials?.email === "user@example.com" &&
           credentials?.password === "password123"
@@ -33,6 +35,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
     }),
   ],
+  pages: {
+    signIn: "/login", // Custom login page
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
@@ -43,13 +48,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      session.user.id = token.id as string;
-      session.user.name = token.name as string;
-      session.user.email = token.email as string;
+      // Pastikan properti ada sebelum assign
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+      }
       return session;
     },
   },
   session: {
     strategy: "jwt",
   },
+  debug: process.env.NODE_ENV === "development",
 });
