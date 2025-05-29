@@ -53,7 +53,8 @@ const SignInModal: React.FC<SignInModalProps> = ({
     const result = await signIn("credentials", {
       email,
       password,
-      redirect: false,
+      // redirect: false,
+      callbackUrl: "/"
     });
 
     if (result?.error) {
@@ -67,7 +68,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
       setPassword("");
       setIsLoading(false);
       onClose(); // tutup modal dulu
-      router.push("/");
+      // router.push("/");
     }
   };
 
