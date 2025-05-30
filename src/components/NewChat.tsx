@@ -64,12 +64,11 @@ const NewChat = () => {
         }
       );
 
-      closeModal();
       router.push(`/chat/${doc?.id}`);
       toast.success("New chat created");
+      closeModal();
     } catch (error) {
       console.error("Error creating new chat:", error);
-      alert("Terjadi kesalahan saat membuat chat baru. Silakan coba lagi.");
       toast.error("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);

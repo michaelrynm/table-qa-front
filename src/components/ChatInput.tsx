@@ -4,7 +4,6 @@ import { Message } from "@/type";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
-import toast from "react-hot-toast";
 import { useSession } from "next-auth/react";
 import { ImArrowUpRight2 } from "react-icons/im";
 import { IoMdAdd } from "react-icons/io";
@@ -80,7 +79,29 @@ const ChatInput = ({ id }: { id?: string }) => {
       );
       setPrompt("");
 
-      const notification = toast.loading("Chatbot is thinking...");
+      const loadingMessage = {
+        text: "",
+        createdAt: serverTimestamp(),
+        isLoading: true,
+        user: {
+          _id: "ChatGPT",
+          name: "ChatGPT",
+          avatar:
+            "https://res.cloudinary.com/duehd78sl/image/upload/v1729227742/logoLight_amxdpz.png",
+        },
+      };
+
+      const loadingDocRef = await addDoc(
+        collection(
+          db,
+          "users",
+          userEmail,
+          "chats",
+          chatDocumentId as string,
+          "messages"
+        ),
+        loadingMessage
+      );
 
       await fetch("/api/askchat", {
         method: "POST",
@@ -92,23 +113,17 @@ const ChatInput = ({ id }: { id?: string }) => {
           id: chatDocumentId,
           model,
           session: userEmail,
+          loadingMessageId: loadingDocRef.id,
         }),
       }).then(async (res) => {
         const data = await res.json();
 
-        if (data?.success) {
-          toast.success(data?.message, {
-            id: notification,
-          });
-        } else {
-          toast.error(data?.message, {
-            id: notification,
-          });
+        if (!data?.success) {
+          console.error("Fetch error:", data?.message);
         }
       });
     } catch (error) {
       console.error("Error sending message:", error);
-      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -135,10 +150,8 @@ const ChatInput = ({ id }: { id?: string }) => {
       >
         <div>
           <textarea
-            // type="text"
             rows={1}
             value={prompt}
-            // onChange={(e) => setPrompt(e.target.value)}
             onInput={handleInput}
             onKeyDown={handleKeyDown}
             placeholder="Message ChatGPT"
@@ -147,7 +160,6 @@ const ChatInput = ({ id }: { id?: string }) => {
           />
         </div>
         <div className="flex justify-between items-center mt-2">
-          {/* <IoChatboxEllipses className="text-2xl text-primary-foreground" /> */}
           <div className="flex gap-3 items-center">
             <div className="rounded-full hover:bg-white/50 cursor-pointer">
               <IoMdAdd className="text-xl text-primary-foreground" />
