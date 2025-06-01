@@ -57,10 +57,10 @@ const frameworks = [
   },
 ];
 
-const HeaderClient = ({ 
-  session: serverSession, 
-  sidebarOpen, 
-  setSidebarOpen 
+const HeaderClient = ({
+  session: serverSession,
+  sidebarOpen,
+  setSidebarOpen,
 }: HeaderClientProps) => {
   const { data: clientSession } = useSession();
   const session = serverSession || clientSession;
@@ -72,7 +72,7 @@ const HeaderClient = ({
   const [title, setTitle] = useState<string>("");
   const [model, setModel] = useState<string>("");
   const [isInChatRoom, setIsInChatRoom] = useState<boolean>(false);
-  const [isUpdatingModel, setIsUpdatingModel] = useState(false);
+  const [_isUpdatingModel, setIsUpdatingModel] = useState(false);
 
   const fetchChatData = async () => {
     const match = pathname?.match(/\/chat\/([^/]+)/);
@@ -134,7 +134,7 @@ const HeaderClient = ({
               <HiMenuAlt3 size={18} />
             </button>
           )}
-          
+
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button

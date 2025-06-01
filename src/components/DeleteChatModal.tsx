@@ -1,24 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
 import { FaTimes } from "react-icons/fa";
 import { PiTrashSimple } from "react-icons/pi";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
-import {
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  query,
-  orderBy,
-} from "firebase/firestore";
+import { deleteDoc, doc } from "firebase/firestore";
 import { useSession } from "next-auth/react";
 import { db } from "@/firebase";
 import { BiSolidTrashAlt } from "react-icons/bi";
-import { usePathname } from "next/navigation";
-import { useCollection } from "react-firebase-hooks/firestore";
 
 interface DeleteChatModalProps {
   chatId: string;
@@ -29,20 +20,6 @@ const DeleteChatModal = ({ chatId }: DeleteChatModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
-  const [active, setActive] = useState(false);
-  const pathname = usePathname();
-
-  useEffect(() => {
-    if (!pathname) return;
-    setActive(pathname.includes(chatId));
-  }, [pathname, chatId]);
-
-  const [chatsSnapshot] = useCollection(
-    query(
-      collection(db, "users", session?.user?.email as string, "chats"),
-      orderBy("createdAt", "desc")
-    )
-  );
 
   const open = () => setIsOpen(true);
   const close = () => setIsOpen(false);
@@ -60,8 +37,8 @@ const DeleteChatModal = ({ chatId }: DeleteChatModalProps) => {
       );
       await deleteDoc(chatsRef);
 
-      toast.success("All chats deleted successfully!");
       router.push("/");
+      toast.success("All chats deleted successfully!");
       close();
     } catch (error) {
       console.error("Error deleting chats:", error);

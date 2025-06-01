@@ -5,7 +5,6 @@ import { Toaster } from "react-hot-toast";
 import Sidebar from "../../components/Sidebar";
 import Header from "../../components/Header";
 import { useState } from "react";
-import { HiMenuAlt3 } from "react-icons/hi";
 
 // Pastikan ini BUKAN async function
 export default function DashboardLayout({

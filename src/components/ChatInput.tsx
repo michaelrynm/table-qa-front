@@ -7,7 +7,6 @@ import { FormEvent, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { ImArrowUpRight2 } from "react-icons/im";
 import { IoMdAdd } from "react-icons/io";
-import useSWR from "swr";
 import { VscVscodeInsiders } from "react-icons/vsc";
 import { FaSpinner } from "react-icons/fa6";
 import { doc, getDoc } from "firebase/firestore";
