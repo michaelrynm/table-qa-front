@@ -7,6 +7,7 @@ import {
   FiUser,
   FiUserPlus,
 } from "react-icons/fi";
+import { HiMenuAlt3 } from "react-icons/hi";
 import SignOut from "./SignOut";
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
@@ -34,6 +35,8 @@ import DeleteAllChatsModal from "./DeleteAllChatModal";
 
 interface HeaderClientProps {
   session: Session | null;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
 }
 
 const frameworks = [
@@ -54,7 +57,11 @@ const frameworks = [
   },
 ];
 
-const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
+const HeaderClient = ({ 
+  session: serverSession, 
+  sidebarOpen, 
+  setSidebarOpen 
+}: HeaderClientProps) => {
   const { data: clientSession } = useSession();
   const session = serverSession || clientSession;
   const [open, setOpen] = useState(false);
@@ -65,6 +72,7 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
   const [title, setTitle] = useState<string>("");
   const [model, setModel] = useState<string>("");
   const [isInChatRoom, setIsInChatRoom] = useState<boolean>(false);
+  const [isUpdatingModel, setIsUpdatingModel] = useState(false);
 
   const fetchChatData = async () => {
     const match = pathname?.match(/\/chat\/([^/]+)/);
@@ -115,7 +123,18 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
   return (
     <div className="absolute top-0 left-0 grid items-center justify-between w-full grid-cols-3 px-5 py-2 shadow-xl bg-[#212121]">
       <div className="justify-self-start">
-        <div>
+        <div className="flex items-center gap-3">
+          {/* Toggle Sidebar Button - hanya muncul ketika sidebar tertutup */}
+          {!sidebarOpen && (
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-md hover:bg-white/10 text-white/70 hover:text-white transition-all duration-200 mr-2"
+              title="Open sidebar"
+            >
+              <HiMenuAlt3 size={18} />
+            </button>
+          )}
+          
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
               <Button
@@ -149,11 +168,15 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
                         key={framework.value}
                         value={framework.value}
                         onSelect={async (currentValue) => {
-                          const newModel =
-                            currentValue === model ? "" : currentValue;
+                          setIsUpdatingModel(true);
+                          const newModel = currentValue;
+
+                          setModel(newModel);
                           setOpen(false);
+
                           const match = pathname?.match(/\/chat\/([^/]+)/);
                           const chatId = match?.[1];
+
                           if (chatId && newModel && session?.user?.email) {
                             try {
                               const chatDocRef = doc(
@@ -164,8 +187,15 @@ const HeaderClient = ({ session: serverSession }: HeaderClientProps) => {
                                 chatId
                               );
                               await updateDoc(chatDocRef, { model: newModel });
+                              console.log(
+                                "Model updated successfully:",
+                                newModel
+                              );
                             } catch (error) {
                               console.error("Error updating model:", error);
+                              setModel(model);
+                            } finally {
+                              setIsUpdatingModel(false);
                             }
                           }
                         }}
