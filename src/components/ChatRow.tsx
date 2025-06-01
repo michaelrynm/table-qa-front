@@ -15,7 +15,8 @@ import { GoKebabHorizontal } from "react-icons/go";
 import { IoPencil } from "react-icons/io5";
 import { FaSpinner } from "react-icons/fa6";
 import EditChatModal from "./EditChatModal";
-
+import DeleteChatModal from "./DeleteChatModal";
+import { Delete } from "lucide-react";
 
 interface Props {
   id: string;
@@ -177,6 +178,16 @@ const ChatRow = ({ id }: Props) => {
                   <BiSolidTrashAlt />
                 )}
                 <p className="text-sm ">Delete</p>
+              </div>
+            </MenuItem>
+            <MenuItem>
+              <div
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+              >
+                <DeleteChatModal chatId={id} />
               </div>
             </MenuItem>
           </MenuItems>

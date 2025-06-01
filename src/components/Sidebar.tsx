@@ -11,8 +11,15 @@ import NewChat from "./NewChat";
 import ChatRow from "./ChatRow";
 import Image from "next/image";
 import { AiOutlineHome } from "react-icons/ai";
+import { HiMenuAlt3 } from "react-icons/hi";
 
-const Sidebar = () => {
+const Sidebar = ({
+  setSidebarOpen,
+  sidebarOpen,
+}: {
+  setSidebarOpen: (open: boolean) => void;
+  sidebarOpen: boolean;
+}) => {
   const { data: session } = useSession();
   const [chats, loading] = useCollection(
     session &&
@@ -37,13 +44,22 @@ const Sidebar = () => {
   }, [chats, loading, session, router]);
 
   return (
-    <div className="hidden md:inline-flex flex-col w-full h-screen p-2 relative">
+    <div className="flex flex-col w-full h-screen p-2 relative">
       {/* New Chat */}
-      <div className="flex items-center justify-center gap-1 border-b border-white/30">
+      <div className="flex items-center justify-between gap-1 border-b border-white/30 py-1">
         <Link href={"/"} className="flex">
           <Image src={"/favicon.ico"} alt="logo" width={32} height={32} />
           <p className="font-semibold text-3xl">ChtGPT</p>
         </Link>
+        <div className="justify-end">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="p-2 rounded-md hover:bg-white/10 text-white/70 hover:text-white transition-all duration-200"
+            title="Collapse sidebar"
+          >
+            <HiMenuAlt3 size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="mt-4">
