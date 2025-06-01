@@ -3,13 +3,15 @@ import { db } from "@/firebase";
 import { Message } from "@/type";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { ImArrowUpRight2 } from "react-icons/im";
 import { IoMdAdd } from "react-icons/io";
 import useSWR from "swr";
 import { VscVscodeInsiders } from "react-icons/vsc";
 import { FaSpinner } from "react-icons/fa6";
+import { doc, getDoc } from "firebase/firestore";
+import { usePathname } from "next/navigation";
 
 const ChatInput = ({ id }: { id?: string }) => {
   const chatId = id;
@@ -17,10 +19,58 @@ const ChatInput = ({ id }: { id?: string }) => {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
+  const pathname = usePathname();
 
-  const { data: model } = useSWR("model", {
-    fallbackData: "gpt-4o-mini",
-  });
+  const [currentModel, setCurrentModel] = useState("gpt-4o");
+
+  const frameworks = [
+    {
+      value: "gpt-4o",
+      label: "GPT-4o",
+    },
+    {
+      value: "o3",
+      label: "o3",
+    },
+    {
+      value: "o4-mini",
+      label: "o4-mini",
+    },
+  ];
+
+  const fetchModelFromFirestore = async () => {
+    const match = pathname?.match(/\/chat\/([^/]+)/);
+    const chatId = match?.[1];
+
+    if (chatId && session?.user?.email) {
+      try {
+        const chatDocRef = doc(
+          db,
+          "users",
+          session.user.email,
+          "chats",
+          chatId
+        );
+        const chatDoc = await getDoc(chatDocRef);
+
+        if (chatDoc.exists()) {
+          const chatData = chatDoc.data();
+          setCurrentModel(chatData.model || "gpt-4o");
+        } else {
+          setCurrentModel("gpt-4o");
+        }
+      } catch (error) {
+        console.error("Error fetching model:", error);
+        setCurrentModel("gpt-4o");
+      }
+    } else {
+      setCurrentModel("gpt-4o");
+    }
+  };
+
+  useEffect(() => {
+    fetchModelFromFirestore();
+  }, [pathname, session]);
 
   const userEmail = session?.user
     ? (session?.user?.email as string)
@@ -111,7 +161,7 @@ const ChatInput = ({ id }: { id?: string }) => {
         body: JSON.stringify({
           prompt: input,
           id: chatDocumentId,
-          model,
+          model: currentModel,
           session: userEmail,
           loadingMessageId: loadingDocRef.id,
         }),
@@ -165,7 +215,10 @@ const ChatInput = ({ id }: { id?: string }) => {
               <IoMdAdd className="text-xl text-primary-foreground" />
             </div>
             <div className="border border-white/50 rounded-full hover:bg-white/50 cursor-pointer py-1 px-2">
-              <p className="text-primary-foreground text-xs">ChtGPT-4o</p>
+              <p className="text-primary-foreground text-xs">
+                {frameworks.find((f) => f.value === currentModel)?.label ||
+                  currentModel}
+              </p>
             </div>
             <div className="border border-white/50 rounded-full hover:bg-white/50 cursor-pointer py-1 px-2 flex gap-1 items-center">
               <VscVscodeInsiders />
