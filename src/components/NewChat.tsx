@@ -6,6 +6,7 @@ import { FaPlus, FaTimes, FaComments, FaRobot } from "react-icons/fa";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { useModel } from "../context/ModelContext";
 
 const NewChat = () => {
   const router = useRouter();
@@ -13,7 +14,7 @@ const NewChat = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [title, setTitle] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gpt-4o");
+  const { model: selectedModel, setModel: setSelectedModel } = useModel();
   const [isLoading, setIsLoading] = useState(false);
 
   const modelOptions = [

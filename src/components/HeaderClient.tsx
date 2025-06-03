@@ -32,6 +32,7 @@ import {
 import { CommandSeparator } from "cmdk";
 import { Session } from "next-auth";
 import DeleteAllChatsModal from "./DeleteAllChatModal";
+import { useModel } from "../context/ModelContext";
 
 interface HeaderClientProps {
   session: Session | null;
@@ -70,7 +71,7 @@ const HeaderClient = ({
   );
   const pathname = usePathname();
   const [title, setTitle] = useState<string>("");
-  const [model, setModel] = useState<string>("");
+  const { model, setModel } = useModel();
   const [isInChatRoom, setIsInChatRoom] = useState<boolean>(false);
   const [_isUpdatingModel, setIsUpdatingModel] = useState(false);
 
@@ -121,17 +122,17 @@ const HeaderClient = ({
   }, [session]);
 
   return (
-    <div className="absolute top-0 left-0 grid items-center justify-between w-full grid-cols-3 px-5 py-2 shadow-xl bg-[#212121]">
+    <div className="absolute top-0 left-0 grid items-center justify-between w-full grid-cols-3 px-3 sm:px-5 py-2 shadow-xl bg-[#212121]">
       <div className="justify-self-start">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1 sm:gap-3">
           {/* Toggle Sidebar Button - hanya muncul ketika sidebar tertutup */}
           {!sidebarOpen && (
             <button
               onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-md hover:bg-white/10 text-white/70 hover:text-white transition-all duration-200 mr-2"
+              className="p-1 sm:p-2 rounded-md hover:bg-white/10 text-white/70 hover:text-white transition-all duration-200 mr-1 sm:mr-2"
               title="Open sidebar"
             >
-              <HiMenuAlt3 size={18} />
+              <HiMenuAlt3 size={16} className="sm:w-[18px] sm:h-[18px]" />
             </button>
           )}
 
@@ -140,19 +141,20 @@ const HeaderClient = ({
               <Button
                 role="combobox"
                 aria-expanded={open}
-                className={`flex items-center gap-1 justify-between bg-[#2F2F2F] px-3 py-2 rounded-lg text-primary-foreground/80 font-semibold tracking-wide text-base hover:bg-primaryGray/50`}
+                className={`flex items-center gap-1 justify-between bg-[#2F2F2F] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-primary-foreground/80 font-semibold tracking-wide text-sm sm:text-base hover:bg-primaryGray/50 min-w-0`}
               >
-                {"ChatGPT"}
+                <span className="hidden xs:inline">{"ChatGPT"}</span>
+                <span className="xs:hidden text-xs">{"GPT"}</span>
                 {isInChatRoom && model && (
-                  <span className="font-light text-white/50">
+                  <span className="font-light text-white/50 text-xs sm:text-sm hidden sm:inline truncate">
                     {frameworks.find((f) => f.value === model)?.label || model}
                   </span>
                 )}
-                <FiChevronDown className="text-lg" />
+                <FiChevronDown className="text-base sm:text-lg flex-shrink-0" />
               </Button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-[280px] p-0 border-none bg-[#2F2F2F] rounded-2xl"
+              className="w-[250px] sm:w-[280px] p-0 border-none bg-[#2F2F2F] rounded-2xl"
               side="bottom"
               align="start"
             >
@@ -160,25 +162,26 @@ const HeaderClient = ({
                 <CommandList>
                   <CommandGroup
                     heading="Models"
-                    className="p-3 text-sm text-white/50"
+                    className="p-2 sm:p-3 text-xs sm:text-sm text-white/50"
                   >
                     {frameworks.map((framework) => (
                       <CommandItem
-                        className="py-3 text-white hover:bg-white/30 rounded-xl"
+                        className="py-2 sm:py-3 text-white hover:bg-white/30 rounded-xl text-sm"
                         key={framework.value}
                         value={framework.value}
                         onSelect={async (currentValue) => {
                           setIsUpdatingModel(true);
                           const newModel = currentValue;
 
-                          setModel(newModel);
-                          setOpen(false);
+                          try {
+                            setModel(newModel);
 
-                          const match = pathname?.match(/\/chat\/([^/]+)/);
-                          const chatId = match?.[1];
+                            setOpen(false);
 
-                          if (chatId && newModel && session?.user?.email) {
-                            try {
+                            const match = pathname?.match(/\/chat\/([^/]+)/);
+                            const chatId = match?.[1];
+
+                            if (chatId && session?.user?.email) {
                               const chatDocRef = doc(
                                 db,
                                 "users",
@@ -186,29 +189,36 @@ const HeaderClient = ({
                                 "chats",
                                 chatId
                               );
+
                               await updateDoc(chatDocRef, { model: newModel });
+
                               console.log(
-                                "Model updated successfully:",
+                                "Model updated successfully in Firestore:",
                                 newModel
                               );
-                            } catch (error) {
-                              console.error("Error updating model:", error);
-                              setModel(model);
-                            } finally {
-                              setIsUpdatingModel(false);
                             }
+                          } catch (error) {
+                            console.error(
+                              "Error updating model in Firestore:",
+                              error
+                            );
+
+                            // Optional: rollback ke model sebelumnya jika gagal
+                            setModel(model);
+                          } finally {
+                            setIsUpdatingModel(false);
                           }
                         }}
                       >
-                        <div>
-                          {framework.label}
-                          <p className="text-xs text-white/50">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate">{framework.label}</div>
+                          <p className="text-xs text-white/50 truncate">
                             {framework.description}
                           </p>
                         </div>
                         <Check
                           className={cn(
-                            "ml-auto",
+                            "ml-auto flex-shrink-0",
                             model === framework.value
                               ? "opacity-100 text-white w-4 h-4"
                               : "opacity-0"
@@ -221,9 +231,9 @@ const HeaderClient = ({
                 <CommandSeparator />
                 <CommandList className="mb-2">
                   <CommandGroup>
-                    <CommandItem className="text-white">
+                    <CommandItem className="text-white text-sm">
                       <p>More Models</p>
-                      <ChevronRight className="w-4 h-4 ml-auto" />
+                      <ChevronRight className="w-4 h-4 ml-auto flex-shrink-0" />
                     </CommandItem>
                   </CommandGroup>
                 </CommandList>
@@ -233,17 +243,26 @@ const HeaderClient = ({
         </div>
       </div>
 
-      <div className="justify-self-center">
+      <div className="justify-self-center min-w-0 px-2">
         {isInChatRoom && session?.user ? (
-          <p className="text-lg font-bold">{title}</p>
+          <p className="text-sm sm:text-lg font-bold text-center truncate">
+            {title}
+          </p>
         ) : (
-          <p className="text-lg font-bold">Hello, {session?.user?.name}</p>
+          <p className="text-sm sm:text-lg font-bold text-center truncate">
+            <span className="hidden sm:inline">
+              Hello, {session?.user?.name}
+            </span>
+            <span className="sm:hidden">
+              Hi, {session?.user?.name?.split(" ")[0]}
+            </span>
+          </p>
         )}
       </div>
 
-      <div className="flex items-center gap-3 justify-self-end">
+      <div className="flex items-center gap-1 sm:gap-3 justify-self-end">
         <Menu>
-          <MenuButton className="relative group w-10 h-10 mr-2 font-semibold tracking-wide duration-300 rounded-xl ring-2 ring-white/10 hover:ring-white/30 hover:shadow-lg hover:shadow-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm">
+          <MenuButton className="relative group w-8 h-8 sm:w-10 sm:h-10 mr-1 sm:mr-2 font-semibold tracking-wide duration-300 rounded-xl ring-2 ring-white/10 hover:ring-white/30 hover:shadow-lg hover:shadow-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-sm">
             <Image
               src={imageSrc}
               alt="userImage"
@@ -254,45 +273,45 @@ const HeaderClient = ({
               onError={() => setImageSrc("/logoLight.png")}
             />
             <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-[#2F2F2F] shadow-lg animate-pulse" />
+            <div className="absolute -bottom-0.5 -right-0.5 sm:-bottom-1 sm:-right-1 w-2 h-2 sm:w-3 sm:h-3 bg-green-500 rounded-full border-2 border-[#2F2F2F] shadow-lg animate-pulse" />
           </MenuButton>
 
           <MenuItems
             transition
             anchor="bottom end"
-            className="p-1 origin-top-right mt-3 rounded-2xl border border-white/10 bg-[#2F2F2F]/95 backdrop-blur-xl text-primary-foreground w-72 shadow-2xl shadow-black/50 transition-all duration-200 data-[closed]:scale-95 data-[closed]:opacity-0"
+            className="p-1 origin-top-right mt-3 rounded-2xl border border-white/10 bg-[#2F2F2F]/95 backdrop-blur-xl text-primary-foreground w-64 sm:w-72 shadow-2xl shadow-black/50 transition-all duration-200 data-[closed]:scale-95 data-[closed]:opacity-0"
           >
-            <div className="border-b border-white/10 px-4 py-3 bg-gradient-to-r from-white/5 to-transparent rounded-t-2xl">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/10">
-                  <FiUser className="text-sm text-white/80" />
+            <div className="border-b border-white/10 px-3 sm:px-4 py-2 sm:py-3 bg-gradient-to-r from-white/5 to-transparent rounded-t-2xl">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-white/10 flex-shrink-0">
+                  <FiUser className="text-xs sm:text-sm text-white/80" />
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-xs text-white/60 font-medium uppercase tracking-wider">
                     Akun Aktif
                   </p>
-                  <p className="text-sm text-white/90 font-medium truncate">
+                  <p className="text-xs sm:text-sm text-white/90 font-medium truncate">
                     {session?.user?.email}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-2 space-y-1">
+            <div className="p-1 sm:p-2 space-y-1">
               <MenuItem>
-                <button className="group flex w-full items-center gap-3 rounded-xl p-3 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:shadow-lg hover:shadow-white/5">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl flex items-center justify-center border border-blue-500/20 group-hover:border-blue-400/40 transition-colors duration-200">
-                    <FiUserPlus className="text-sm text-blue-400 group-hover:text-blue-300 transition-colors duration-200" />
+                <button className="group flex w-full items-center gap-2 sm:gap-3 rounded-xl p-2 sm:p-3 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:shadow-lg hover:shadow-white/5">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl flex items-center justify-center border border-blue-500/20 group-hover:border-blue-400/40 transition-colors duration-200 flex-shrink-0">
+                    <FiUserPlus className="text-xs sm:text-sm text-blue-400 group-hover:text-blue-300 transition-colors duration-200" />
                   </div>
-                  <div className="flex-1 text-left">
-                    <p className="text-sm font-medium text-white group-hover:text-white/90 transition-colors duration-200">
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-xs sm:text-sm font-medium text-white group-hover:text-white/90 transition-colors duration-200 truncate">
                       Profil
                     </p>
-                    <p className="text-xs text-white/50 group-hover:text-white/60 transition-colors duration-200">
+                    <p className="text-xs text-white/50 group-hover:text-white/60 transition-colors duration-200 truncate">
                       Kelola informasi akun
                     </p>
                   </div>
-                  <FiChevronRight className="text-white/30 group-hover:text-white/50 group-hover:translate-x-1 transition-all duration-200" />
+                  <FiChevronRight className="text-white/30 group-hover:text-white/50 group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
                 </button>
               </MenuItem>
 
@@ -309,9 +328,9 @@ const HeaderClient = ({
               </MenuItem>
             </div>
 
-            <div className="h-px mx-3 my-2 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+            <div className="h-px mx-2 sm:mx-3 my-1 sm:my-2 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
-            <div className="p-2">
+            <div className="p-1 sm:p-2">
               <MenuItem>
                 <div
                   className="rounded-xl overflow-hidden"

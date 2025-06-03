@@ -9,8 +9,8 @@ import { ImArrowUpRight2 } from "react-icons/im";
 import { IoMdAdd } from "react-icons/io";
 import { VscVscodeInsiders } from "react-icons/vsc";
 import { FaSpinner } from "react-icons/fa6";
-import { doc, getDoc } from "firebase/firestore";
 import { usePathname } from "next/navigation";
+import { useModel } from "../context/ModelContext";
 
 const ChatInput = ({ id }: { id?: string }) => {
   const chatId = id;
@@ -18,9 +18,8 @@ const ChatInput = ({ id }: { id?: string }) => {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const { data: session } = useSession();
-  const pathname = usePathname();
 
-  const [currentModel, setCurrentModel] = useState("gpt-4o");
+  const { model: currentModel } = useModel();
 
   const frameworks = [
     {
@@ -36,40 +35,6 @@ const ChatInput = ({ id }: { id?: string }) => {
       label: "o4-mini",
     },
   ];
-
-  const fetchModelFromFirestore = async () => {
-    const match = pathname?.match(/\/chat\/([^/]+)/);
-    const chatId = match?.[1];
-
-    if (chatId && session?.user?.email) {
-      try {
-        const chatDocRef = doc(
-          db,
-          "users",
-          session.user.email,
-          "chats",
-          chatId
-        );
-        const chatDoc = await getDoc(chatDocRef);
-
-        if (chatDoc.exists()) {
-          const chatData = chatDoc.data();
-          setCurrentModel(chatData.model || "gpt-4o");
-        } else {
-          setCurrentModel("gpt-4o");
-        }
-      } catch (error) {
-        console.error("Error fetching model:", error);
-        setCurrentModel("gpt-4o");
-      }
-    } else {
-      setCurrentModel("gpt-4o");
-    }
-  };
-
-  useEffect(() => {
-    fetchModelFromFirestore();
-  }, [pathname, session]);
 
   const userEmail = session?.user
     ? (session?.user?.email as string)
