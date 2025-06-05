@@ -33,6 +33,7 @@ import { CommandSeparator } from "cmdk";
 import { Session } from "next-auth";
 import DeleteAllChatsModal from "./DeleteAllChatModal";
 import { useModel } from "../context/ModelContext";
+import ProfileModal from "./ProfileModal";
 
 interface HeaderClientProps {
   session: Session | null;
@@ -74,6 +75,7 @@ const HeaderClient = ({
   const { model, setModel } = useModel();
   const [isInChatRoom, setIsInChatRoom] = useState<boolean>(false);
   const [_isUpdatingModel, setIsUpdatingModel] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const fetchChatData = async () => {
     const match = pathname?.match(/\/chat\/([^/]+)/);
@@ -299,7 +301,14 @@ const HeaderClient = ({
 
             <div className="p-1 sm:p-2 space-y-1">
               <MenuItem>
-                <button className="group flex w-full items-center gap-2 sm:gap-3 rounded-xl p-2 sm:p-3 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:shadow-lg hover:shadow-white/5">
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsProfileModalOpen(true);
+                  }}
+                  className="group flex w-full items-center gap-2 sm:gap-3 rounded-xl p-2 sm:p-3 cursor-pointer transition-all duration-200 hover:bg-gradient-to-r hover:from-white/10 hover:to-white/5 hover:shadow-lg hover:shadow-white/5"
+                >
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500/20 to-blue-600/20 rounded-xl flex items-center justify-center border border-blue-500/20 group-hover:border-blue-400/40 transition-colors duration-200 flex-shrink-0">
                     <FiUserPlus className="text-xs sm:text-sm text-blue-400 group-hover:text-blue-300 transition-colors duration-200" />
                   </div>
@@ -345,6 +354,21 @@ const HeaderClient = ({
             </div>
           </MenuItems>
         </Menu>
+        <ProfileModal
+          isOpen={isProfileModalOpen}
+          onOpen={() => setIsProfileModalOpen(true)}
+          onClose={() => setIsProfileModalOpen(false)}
+          user={
+            session?.user
+              ? {
+                  name: session.user.name || "Pengguna",
+                  email: session.user.email || "email@example.com",
+                  avatar: session.user.image || "/default-avatar.png",
+                  joinedYear: 2023,
+                }
+              : null
+          }
+        />
       </div>
     </div>
   );
