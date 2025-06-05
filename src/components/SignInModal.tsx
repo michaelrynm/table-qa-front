@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React, { useState, useRef } from "react";
-import { googleImage, logo } from "../app/assets";
+import { googleImage } from "../app/assets";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";

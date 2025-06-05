@@ -1,13 +1,15 @@
 "use client";
 import React from "react";
 import { Dialog, DialogPanel } from "@headlessui/react";
-import { FaUser, FaTimes, FaEnvelope, FaEdit, FaCog } from "react-icons/fa";
+import { FaUser, FaTimes, FaEnvelope, FaEdit } from "react-icons/fa";
+import { Avatar1 } from "../app/assets";
+import { StaticImageData } from "next/image";
 
 // Definisi interface untuk user data
 interface User {
   name: string;
   email: string;
-  avatar: string;
+  avatar: string | StaticImageData; // Update tipe ini
   joinedYear?: number;
 }
 
@@ -52,40 +54,60 @@ const InfoCard: React.FC<InfoCardProps> = ({
 
 // Komponen Avatar terpisah untuk reusability
 interface AvatarProps {
-  src: string;
+  src: string | StaticImageData; // Update tipe ini
   alt: string;
   size?: number;
   editable?: boolean;
 }
+
+// Helper function untuk mengkonversi StaticImageData ke string
+const getImageSrc = (src: string | StaticImageData): string => {
+  if (typeof src === "string") {
+    return src;
+  }
+  return src.src; // StaticImageData memiliki property src
+};
 
 const Avatar: React.FC<AvatarProps> = ({
   src,
   alt,
   size = 24,
   editable = true,
-}) => (
-  <div className="relative">
-    <div
-      className={`w-${size} h-${size} rounded-2xl overflow-hidden border-4 border-gradient-to-br from-blue-500/30 to-purple-500/30 bg-gradient-to-br from-blue-500/10 to-purple-500/10`}
-    >
-      <img
-        src={src}
-        alt={alt}
-        className="w-full h-full object-cover"
-        onError={(e) => {
-          // Fallback jika gambar gagal dimuat
-          const target = e.target as HTMLImageElement;
-          target.src = "/default-avatar.png";
-        }}
-      />
-    </div>
-    {editable && (
-      <div className="absolute -bottom-1 -right-1 p-1.5 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg cursor-pointer hover:scale-110 transition-transform">
-        <FaEdit size={12} />
+}) => {
+  const imageSrc = getImageSrc(src);
+
+  // Konversi size ke pixel untuk inline styles
+  const sizeInRem = size * 0.25; // 24 = 6rem (24 * 0.25)
+  const sizeStyle = {
+    width: `${sizeInRem}rem`,
+    height: `${sizeInRem}rem`,
+  };
+
+  return (
+    <div className="relative">
+      <div
+        className="rounded-2xl overflow-hidden border-4 border-gradient-to-br from-blue-500/30 to-purple-500/30 bg-gradient-to-br from-blue-500/10 to-purple-500/10"
+        style={sizeStyle}
+      >
+        <img
+          src={imageSrc}
+          alt={alt}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            // Fallback jika gambar gagal dimuat
+            const target = e.target as HTMLImageElement;
+            target.src = getImageSrc(Avatar1); // Gunakan helper function
+          }}
+        />
       </div>
-    )}
-  </div>
-);
+      {editable && (
+        <div className="absolute -bottom-1 -right-1 p-1.5 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 text-white shadow-lg cursor-pointer hover:scale-110 transition-transform">
+          <FaEdit size={12} />
+        </div>
+      )}
+    </div>
+  );
+};
 
 const ProfileModal: React.FC<ProfileModalProps> = ({
   isOpen,
@@ -93,7 +115,6 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
   onOpen,
   user,
 }) => {
-  // Early return jika user null
   if (!user) {
     return null;
   }
@@ -130,7 +151,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({
             {/* Avatar */}
             <div className="flex flex-col items-center space-y-4">
               <Avatar
-                src={avatar}
+                src={avatar || Avatar1}
                 alt={`Avatar ${name}`}
                 size={24}
                 editable={true}

@@ -3,13 +3,12 @@ import { db } from "@/firebase";
 import { Message } from "@/type";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState, useEffect } from "react";
+import { FormEvent, useState } from "react";
 import { useSession } from "next-auth/react";
 import { ImArrowUpRight2 } from "react-icons/im";
 import { IoMdAdd } from "react-icons/io";
 import { VscVscodeInsiders } from "react-icons/vsc";
 import { FaSpinner } from "react-icons/fa6";
-import { usePathname } from "next/navigation";
 import { useModel } from "../context/ModelContext";
 
 const ChatInput = ({ id }: { id?: string }) => {
