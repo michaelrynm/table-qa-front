@@ -14,17 +14,28 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
   return (
     <SessionProvider>
       <ModelProvider>
-        <div className="flex text-primary-foreground/80">
+        <div className="flex text-primary-foreground/80 relative">
+          {/* Overlay untuk mobile ketika sidebar terbuka */}
+          {sidebarOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+              onClick={() => setSidebarOpen(false)}
+            />
+          )}
+
           {/* Sidebar */}
           <div
-            className={`bg-primary text-primary-foreground/80 h-screen overflow-y-auto transition-all duration-300 ease-in-out relative ${
-              sidebarOpen ? "w-full sm:w-[300px]" : "w-0 md:w-0"
+            className={`bg-primary text-primary-foreground/80 h-screen overflow-y-auto transition-all duration-300 ease-in-out z-50 ${
+              sidebarOpen
+                ? "fixed lg:relative w-[280px] sm:w-[300px] lg:w-[300px]"
+                : "fixed lg:relative w-0 lg:w-0"
             }`}
           >
-            <div className={`${sidebarOpen ? "block" : "hidden"}`}>
+            <div className={`${sidebarOpen ? "block" : "hidden"} w-full`}>
               <Sidebar
                 setSidebarOpen={setSidebarOpen}
                 sidebarOpen={sidebarOpen}
@@ -34,12 +45,14 @@ export default function DashboardLayout({
 
           {/* Main Content */}
           <div
-            className={`bg-[#212121] flex-1 h-screen overflow-hidden relative ${
-              sidebarOpen ? "hidden sm:block" : "block"
+            className={`bg-[#212121] flex-1 h-screen overflow-hidden transition-all duration-300 ease-in-out ${
+              sidebarOpen ? "lg:ml-0" : "lg:ml-0"
             }`}
           >
             <Header sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
-            {children}
+            <div className="h-[calc(100vh-64px)] overflow-y-auto">
+              {children}
+            </div>
           </div>
         </div>
         <Toaster
