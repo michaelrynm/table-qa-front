@@ -5,6 +5,7 @@ import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
 import { Loader2 } from "lucide-react";
+import Logo from "../app/assets/images/bps-logo.png";
 
 interface RegisterModalProps {
   isOpen: boolean;
@@ -76,8 +77,6 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
     setIsLoading(true);
     if (validateForm()) {
       try {
-        // Here you would typically make an API call to register the user
-        // For demo purposes, we'll just show a success message
         toast.success("Registration successful! Please sign in.");
         resetForm();
         onSwitchToSignIn();
@@ -109,7 +108,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({
         {/* Header */}
         <div className="p-6 pb-4 border-b border-white/10 text-center">
           <Image
-            src="/favicon.ico"
+            src={Logo}
             alt="logo"
             width={64}
             height={64}

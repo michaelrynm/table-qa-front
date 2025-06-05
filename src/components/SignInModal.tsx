@@ -1,11 +1,12 @@
 import Image from "next/image";
 import React, { useState, useRef } from "react";
-import { googleImage } from "../app/assets";
+import { googleImage, logo } from "../app/assets";
 import { signIn } from "next-auth/react";
 import toast from "react-hot-toast";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa6";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Logo from "@/src/app/assets/images/bps-logo.png";
 
 interface SignInModalProps {
   isOpen: boolean;
@@ -25,7 +26,6 @@ const SignInModal: React.FC<SignInModalProps> = ({
   const [isPasswordVisible, setIsPasswordVisible] = useState<boolean>(false);
   const router = useRouter();
 
-  // Handle dummy login menggunakan NextAuth
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -34,32 +34,26 @@ const SignInModal: React.FC<SignInModalProps> = ({
       const result = await signIn("credentials", {
         email,
         password,
-        redirect: false, // ✅ Aktifkan ini untuk handle response
+        redirect: false,
       });
 
-      // ✅ NextAuth v5 response structure
       if (result?.error) {
         console.error("Login error:", result.error);
         alert("Login failed. Try user@example.com / password123");
         setEmail("");
         setPassword("");
       } else if (result?.ok) {
-        // ✅ Login berhasil
         toast.success("Sign In successfully!");
         setEmail("");
         setPassword("");
-        onClose(); // tutup modal
+        onClose();
 
-        // ✅ Manual redirect atau biarkan middleware handle
         router.push("/");
-        // Atau: window.location.href = "/"; untuk hard refresh
       } else {
-        // ✅ Handle unexpected response
         console.warn("Unexpected login result:", result);
         alert("Login failed. Please try again.");
       }
     } catch (error) {
-      // ✅ Handle network atau error lainnya
       console.error("Login exception:", error);
       alert("Login failed. Please check your connection.");
     } finally {
@@ -77,7 +71,7 @@ const SignInModal: React.FC<SignInModalProps> = ({
         {/* Header */}
         <div className="p-6 pb-4 border-b border-white/10 text-center">
           <Image
-            src="/favicon.ico"
+            src={Logo}
             alt="logo"
             width={64}
             height={64}
